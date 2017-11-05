@@ -40,8 +40,7 @@ namespace MutableIdeas.Web.DynamicQuery.Services
                 throw new ArgumentException($"Property {propertyName} is not a valid property.");
 
 			PropertyInfo propertyInfo = _propertyInfo[propertyName.ToLower()];
-			Expression pe = Expression.Parameter(typeof(T), "entity");
-			Expression left = Expression.Property(pe, propertyInfo);
+			Expression left = Expression.Property(_pe, propertyInfo);
 			Expression right = Expression.Constant(Convert.ChangeType(value, propertyInfo.PropertyType), propertyInfo.PropertyType);
 			Expression comparingExpression = GetComparingExpression(left, right, filterType);
 
@@ -81,6 +80,8 @@ namespace MutableIdeas.Web.DynamicQuery.Services
                     return Expression.LessThanOrEqual(left, right);
                 case FilterType.NotEqual:
                     return Expression.NotEqual(left, right);
+				case FilterType.Contains:
+					throw new NotImplementedException();
             }
 
             throw new ArgumentException($"The filter type {filterType} does not exist.");
