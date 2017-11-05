@@ -7,9 +7,9 @@ using System.Linq.Expressions;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Domain.Services;
 
-namespace MutableIdeas.Web.DynamicQuery.Services
+namespace MutableIdeas.Web.Linq.Query.Services
 {
-    public class QueryStringExpressionService<T>
+    public class QueryStringExpressionService<T> : IQueryStringExpressionService<T>
         where T : class
     {
         readonly Regex _pattern;
@@ -18,12 +18,12 @@ namespace MutableIdeas.Web.DynamicQuery.Services
 
 		public QueryStringExpressionService(IFilterService<T> filterService)
         {
-            _pattern = new Regex(@"(?<propName>[_A-Za-z]{1}\w*){1}\s+(?<comparison>eq|lt|lte|ne|ge|gte){1}\s+(?<value>\'[\w+|\s+]+\'|[1-9]\d*)(?<operator>\sand|or\s)?");
+            _pattern = new Regex(@"(?<propName>[_A-Za-z]{1}\w*){1}\s+(?<comparison>eq|lt|lte|ne|ge|gte){1}\s+(?<value>\'[\w+|\s+]+\'|[1-9]\d*)(?<operator>\s\w+\s)?");
             _propertyNames = typeof(T).GetRuntimeProperties().ToDictionary(p => p.Name, p => p);
 			_filterService = filterService;
         }
 
-        public Expression<Func<T, bool>> GetExpression(string filter, int? pageSize, int? page)
+        public Expression<Func<T, bool>> GetExpression(string filter)
         {
 			Parse(filter);
 			return _filterService.Build();
@@ -45,24 +45,26 @@ namespace MutableIdeas.Web.DynamicQuery.Services
 
 				_filterService.By(propertyName, value, filterType);
 
-				if (op != null)
+				if (op != null && !string.IsNullOrEmpty(op.Value))
 					GetOperator(op.Value);
             }
         }
-
+	
         void GetOperator(string op)
         {
-            switch(op)
+			string filterOperator = op.Trim();
+
+            switch(filterOperator)
             {
                 case "and":
 					_filterService.And();
-					break;
+					return;
                 case "or":
 					_filterService.Or();
-					break;
+					return;
             }
 
-            throw new FormatException($"{op} is an invalid operator");
+            throw new FormatException($"{filterOperator} is an invalid operator");
         }
 
         FilterType GetFilterType(string comparison)
