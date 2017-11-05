@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MutableIdeas.Web.Linq.Query.Domain\MutableIdeas.Web.Linq.Query.Domain.csproj" />
+  </ItemGroup>
+
+</Project>
