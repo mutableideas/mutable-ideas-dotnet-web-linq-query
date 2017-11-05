@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MutableIdeas.Web.DynamicQuery.Services;
+using MutableIdeas.Web.Linq.Query.Services;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 
 namespace MutableIdeas.Web.Linq.Query.Test

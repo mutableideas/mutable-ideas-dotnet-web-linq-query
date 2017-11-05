@@ -6,7 +6,7 @@ using System.Reflection;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Domain.Services;
 
-namespace MutableIdeas.Web.DynamicQuery.Services
+namespace MutableIdeas.Web.Linq.Query.Services
 {
     public class FilterService<T> : IFilterService<T>
 		where T : class
