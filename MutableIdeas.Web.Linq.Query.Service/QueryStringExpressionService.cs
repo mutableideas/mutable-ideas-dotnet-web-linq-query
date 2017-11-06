@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Linq.Expressions;
-using Microsoft.AspNetCore.WebUtilities;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Domain.Services;
 
@@ -19,7 +18,7 @@ namespace MutableIdeas.Web.Linq.Query.Services
 
 		public QueryStringExpressionService(IFilterService<T> filterService)
         {
-            _pattern = new Regex(@"(?<propName>[_A-Za-z]{1}\w*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte){1}\s+(?<value>\'[\w+|\s+%]+\'|[1-9]\d*)(?<operator>\s\w+\s)?");
+            _pattern = new Regex(@"(?<propName>[_A-Za-z]{1}\w*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte|ct){1}\s+(?<value>\'[\w+|\s+%]+\'|[1-9]\d*)(?<operator>\s\w+\s)?");
 
 			_propertyNames = typeof(T).GetRuntimeProperties().ToDictionary(p => p.Name, p => p);
 			_filterService = filterService;
@@ -85,6 +84,8 @@ namespace MutableIdeas.Web.Linq.Query.Services
                     return FilterType.Equal;
 				case "gte":
 					return FilterType.GreaterThanOrEqualTo;
+				case "ct":
+					return FilterType.Contains;
             }
 
             throw new FormatException($"{comparison} is not a supported comparison type.");

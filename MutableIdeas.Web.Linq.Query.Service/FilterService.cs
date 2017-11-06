@@ -17,6 +17,8 @@ namespace MutableIdeas.Web.Linq.Query.Services
 		readonly ParameterExpression _pe;
         readonly Dictionary<string, PropertyInfo> _propertyInfo;
 
+		readonly MethodInfo stringContainsMethod = typeof(string).GetRuntimeMethod("Contains", new[] { typeof(string) });
+
         public FilterService()
         {
 			_pe = Expression.Parameter(typeof(T), "entity");
@@ -81,7 +83,7 @@ namespace MutableIdeas.Web.Linq.Query.Services
                 case FilterType.NotEqual:
                     return Expression.NotEqual(left, right);
 				case FilterType.Contains:
-					throw new NotImplementedException();
+					return Expression.Call(left, stringContainsMethod, new[] { right });
             }
 
             throw new ArgumentException($"The filter type {filterType} does not exist.");
