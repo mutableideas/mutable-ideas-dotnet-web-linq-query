@@ -19,7 +19,7 @@ namespace MutableIdeas.Web.Linq.Query.Services
 
 		public QueryStringExpressionService(IFilterService<T> filterService)
         {
-            _pattern = new Regex(@"(?<propName>[_A-Za-z]{1}\w*){1}\s+(?<comparison>eq|lt|lte|ne|ge|gte){1}\s+(?<value>\'[\w+|\s+%]+\'|[1-9]\d*)(?<operator>\s\w+\s)?");
+            _pattern = new Regex(@"(?<propName>[_A-Za-z]{1}\w*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte){1}\s+(?<value>\'[\w+|\s+%]+\'|[1-9]\d*)(?<operator>\s\w+\s)?");
 
 			_propertyNames = typeof(T).GetRuntimeProperties().ToDictionary(p => p.Name, p => p);
 			_filterService = filterService;
@@ -79,10 +79,12 @@ namespace MutableIdeas.Web.Linq.Query.Services
                     return FilterType.LessThanOrEqualTo;
                 case "ne":
                     return FilterType.NotEqual;
-                case "ge":
+                case "gt":
                     return FilterType.GreaterThan;
                 case "eq":
                     return FilterType.Equal;
+				case "gte":
+					return FilterType.GreaterThanOrEqualTo;
             }
 
             throw new FormatException($"{comparison} is not a supported comparison type.");
