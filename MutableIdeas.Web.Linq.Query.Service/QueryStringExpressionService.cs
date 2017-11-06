@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Linq.Expressions;
+using Microsoft.AspNetCore.WebUtilities;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Domain.Services;
 
@@ -18,8 +19,9 @@ namespace MutableIdeas.Web.Linq.Query.Services
 
 		public QueryStringExpressionService(IFilterService<T> filterService)
         {
-            _pattern = new Regex(@"(?<propName>[_A-Za-z]{1}\w*){1}\s+(?<comparison>eq|lt|lte|ne|ge|gte){1}\s+(?<value>\'[\w+|\s+]+\'|[1-9]\d*)(?<operator>\s\w+\s)?");
-            _propertyNames = typeof(T).GetRuntimeProperties().ToDictionary(p => p.Name, p => p);
+            _pattern = new Regex(@"(?<propName>[_A-Za-z]{1}\w*){1}\s+(?<comparison>eq|lt|lte|ne|ge|gte){1}\s+(?<value>\'[\w+|\s+%]+\'|[1-9]\d*)(?<operator>\s\w+\s)?");
+
+			_propertyNames = typeof(T).GetRuntimeProperties().ToDictionary(p => p.Name, p => p);
 			_filterService = filterService;
         }
 
@@ -39,7 +41,7 @@ namespace MutableIdeas.Web.Linq.Query.Services
             foreach(Match match in matches)
             {
                 string propertyName = match.Groups["propName"].Value;
-				string value = match.Groups["value"].Value;
+				string value = UnescapeString(match.Groups["value"].Value);
 				Group op = match.Groups["operator"];
 				FilterType filterType = GetFilterType(match.Groups["comparison"].Value);
 
@@ -106,5 +108,16 @@ namespace MutableIdeas.Web.Linq.Query.Services
 
             throw new ArgumentException($"The filter type {filterType} does not exist.");
         }
+
+		string UnescapeString(string value)
+		{
+			if (value.StartsWith("'"))
+			{
+				value = Uri.UnescapeDataString(value.Substring(1, value.Length - 1));
+				return value;
+			}
+
+			return value;
+		}
     }
 }

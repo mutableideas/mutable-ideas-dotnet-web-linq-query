@@ -58,6 +58,10 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_expressionService.Invoking(p => p.GetExpression(qStringFilter))
 				.ShouldThrow<FormatException>()
 				.WithMessage("flub is an invalid operator");
+
+			qStringFilter = "name eq 'Paul%20was%20here'";
+			expression = _expressionService.GetExpression(qStringFilter);
+			expression.Should().NotBeNull();
 		}
     }
 }
