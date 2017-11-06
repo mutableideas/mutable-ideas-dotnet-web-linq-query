@@ -113,7 +113,7 @@ namespace MutableIdeas.Web.Linq.Query.Services
 		{
 			if (value.StartsWith("'"))
 			{
-				value = Uri.UnescapeDataString(value.Substring(1, value.Length - 1));
+				value = Uri.UnescapeDataString(value.Replace("'", string.Empty));
 				return value;
 			}
 
