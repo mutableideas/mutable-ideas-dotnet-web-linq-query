@@ -62,6 +62,11 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			qStringFilter = "name eq 'Paul%20was%20here'";
 			expression = _expressionService.GetExpression(qStringFilter);
 			expression.Should().NotBeNull();
+
+			// Contains ignore case
+			qStringFilter = "name ctic 'CO'";
+			expression = _expressionService.GetExpression(qStringFilter);
+			expression.Should().NotBeNull();
 		}
     }
 }

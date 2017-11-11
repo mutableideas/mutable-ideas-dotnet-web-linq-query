@@ -67,6 +67,18 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 			TestModel between = queryable.Where(expression).First();
 			between.Page.Should().Be(2);
+
+			_filterService.By("lastname", "co", FilterType.ContainsIgnoreCase);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().Should().Be(1);
+
+			_filterService.By("lastname", "Co", FilterType.Contains);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().Should().Be(1);
+
+			_filterService.By("lastname", "Co", FilterType.ContainsIgnoreCase);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().Should().Be(1);
 		}
     }
 }
