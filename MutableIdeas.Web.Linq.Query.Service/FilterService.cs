@@ -18,6 +18,7 @@ namespace MutableIdeas.Web.Linq.Query.Services
         readonly Dictionary<string, PropertyInfo> _propertyInfo;
 
 		readonly MethodInfo stringContainsMethod = typeof(string).GetRuntimeMethod("Contains", new[] { typeof(string) });
+		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
 
         public FilterService()
         {
@@ -84,6 +85,10 @@ namespace MutableIdeas.Web.Linq.Query.Services
                     return Expression.NotEqual(left, right);
 				case FilterType.Contains:
 					return Expression.Call(left, stringContainsMethod, new[] { right });
+				case FilterType.ContainsIgnoreCase:
+					Expression leftCase = Expression.Call(left, stringToLowerMethod);
+					Expression rightCase = Expression.Call(right, stringToLowerMethod);
+					return Expression.Call(leftCase, stringContainsMethod, new[] { rightCase });
             }
 
             throw new ArgumentException($"The filter type {filterType} does not exist.");
