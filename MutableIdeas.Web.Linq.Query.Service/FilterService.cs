@@ -6,7 +6,7 @@ using System.Reflection;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Domain.Services;
 
-namespace MutableIdeas.Web.Linq.Query.Services
+namespace MutableIdeas.Web.Linq.Query.Service
 {
     public class FilterService<T> : IFilterService<T>
 		where T : class
@@ -15,17 +15,17 @@ namespace MutableIdeas.Web.Linq.Query.Services
 		Expression _lastExpression;
 
 		readonly ParameterExpression _pe;
-        readonly Dictionary<string, PropertyInfo> _propertyInfo;
 
 		readonly MethodInfo stringContainsMethod = typeof(string).GetRuntimeMethod("Contains", new[] { typeof(string) });
 		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
+		protected readonly Dictionary<string, PropertyInfo> _propertyInfo;
 
-        public FilterService()
+		public FilterService()
         {
 			_pe = Expression.Parameter(typeof(T), "entity");
-            _propertyInfo = typeof(T).GetRuntimeProperties()
-                .ToDictionary(p => p.Name.ToLower(), p => p);
-        }
+			_propertyInfo = typeof(T).GetRuntimeProperties()
+				.ToDictionary(p => p.Name.ToLower(), p => p);
+		}
 
 		public Expression<Func<T, bool>> Build()
 		{

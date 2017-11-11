@@ -5,13 +5,13 @@ using FluentAssertions;
 using Moq;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Domain.Services;
-using MutableIdeas.Web.Linq.Query.Services;
+using MutableIdeas.Web.Linq.Query.Service;
 
 namespace MutableIdeas.Web.Linq.Query.Test
 {
 	[TestClass]
-    public class QueryStringExpressionTest
-    {
+	public class QueryStringExpressionTest
+	{
 		QueryStringExpressionService<TestModel> _expressionService;
 
 		public QueryStringExpressionTest()
@@ -30,12 +30,10 @@ namespace MutableIdeas.Web.Linq.Query.Test
 				.Returns(() => {
 					return p => p.Name == "Paul";
 				});
-
-			_expressionService = new QueryStringExpressionService<TestModel>(mockService.Object);
 		}
 
 		[TestMethod]
-		public void TestExpression()
+		public void TestFilterExpression()
 		{
 			string qStringFilter = "name eq 'Paul' and lastName ne 'castanza'";
 			Expression<Func<TestModel, bool>> expression = _expressionService.GetExpression(qStringFilter);
@@ -68,5 +66,5 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			expression = _expressionService.GetExpression(qStringFilter);
 			expression.Should().NotBeNull();
 		}
-    }
+	}
 }

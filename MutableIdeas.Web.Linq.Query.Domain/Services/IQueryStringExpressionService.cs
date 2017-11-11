@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace MutableIdeas.Web.Linq.Query.Domain.Services
@@ -7,5 +8,6 @@ namespace MutableIdeas.Web.Linq.Query.Domain.Services
 		where T : class
     {
 		Expression<Func<T, bool>> GetExpression(string filter);
+		IQueryable<T> GetSortExpression(string sort, IQueryable<T> queryable);
 	}
 }
