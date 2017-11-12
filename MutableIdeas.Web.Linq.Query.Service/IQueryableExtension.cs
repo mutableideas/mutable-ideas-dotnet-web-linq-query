@@ -11,8 +11,12 @@ namespace MutableIdeas.Web.Linq.Query.Service.Extensions
 		public static IQueryable<T> OrderBy<T>(this IQueryable<T> source, string orderByProperty, SortDirection direction)                          
 		{
 			string command = direction == SortDirection.Descending ? "OrderByDescending" : "OrderBy";
+
 			Type type = typeof(T);
-			PropertyInfo property = type.GetRuntimeProperties().First(p => p.Name.ToLower() == orderByProperty.ToLower());
+			PropertyInfo property = type.GetRuntimeProperties()
+				.Where(p => p.Name.ToLower() == orderByProperty.Trim().ToLower())
+				.First();
+
 			ParameterExpression parameter = Expression.Parameter(type, "p");
 			MemberExpression propertyAccess = Expression.MakeMemberAccess(parameter, property);
 			Expression orderByExpression = Expression.Lambda(propertyAccess, parameter);

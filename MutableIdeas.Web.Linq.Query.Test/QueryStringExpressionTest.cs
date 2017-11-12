@@ -6,6 +6,7 @@ using Moq;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Domain.Services;
 using MutableIdeas.Web.Linq.Query.Service;
+using System.Linq;
 
 namespace MutableIdeas.Web.Linq.Query.Test
 {
@@ -30,6 +31,8 @@ namespace MutableIdeas.Web.Linq.Query.Test
 				.Returns(() => {
 					return p => p.Name == "Paul";
 				});
+
+			_expressionService = new QueryStringExpressionService<TestModel>(mockService.Object);
 		}
 
 		[TestMethod]
@@ -65,6 +68,36 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			qStringFilter = "name ctic 'CO'";
 			expression = _expressionService.GetExpression(qStringFilter);
 			expression.Should().NotBeNull();
+		}
+
+		[TestMethod]
+		public void TestSort()
+		{
+			IQueryable<TestModel> testModels = new TestModel[] {
+				new TestModel { LastName = "Castanza", Name = "George", Page = 3 },
+				new TestModel { LastName = "Yzerman", Name = "Steve", Page = 2 },
+				new TestModel { LastName = "Federov", Name = "Sergei", Page = 1 }
+			}.AsQueryable();
+
+			string qstringFilter = "name";
+			var models = _expressionService.Sort(qstringFilter, testModels).ToArray();
+			models[0].Name.Should().Be("George");
+			models[1].Name.Should().Be("Sergei");
+			models[2].Name.Should().Be("Steve");
+
+			qstringFilter = "name desc";
+			models = _expressionService.Sort(qstringFilter, testModels).ToArray();
+			models[0].Name.Should().Be("Steve");
+			models[1].Name.Should().Be("Sergei");
+			models[2].Name.Should().Be("George");
+
+			qstringFilter = "page desc";
+			models = _expressionService.Sort(qstringFilter, testModels).ToArray();
+			models[0].Page.ShouldBeEquivalentTo(3);
+
+			qstringFilter = "page";
+			models = _expressionService.Sort(qstringFilter, testModels).ToArray();
+			models[0].Page.ShouldBeEquivalentTo(1);
 		}
 	}
 }
