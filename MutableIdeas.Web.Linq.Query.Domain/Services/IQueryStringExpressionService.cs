@@ -8,6 +8,6 @@ namespace MutableIdeas.Web.Linq.Query.Domain.Services
 		where T : class
     {
 		Expression<Func<T, bool>> GetExpression(string filter);
-		IQueryable<T> GetSortExpression(string sort, IQueryable<T> queryable);
+		IQueryable<T> Sort(string sort, IQueryable<T> queryable);
 	}
 }

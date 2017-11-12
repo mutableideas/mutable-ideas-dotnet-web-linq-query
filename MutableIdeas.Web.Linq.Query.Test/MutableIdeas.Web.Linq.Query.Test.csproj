@@ -15,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MutableIdeas.Web.Linq.Query.Domain\MutableIdeas.Web.Linq.Query.Domain.csproj" />
     <ProjectReference Include="..\MutableIdeas.Web.Linq.Query.Service\MutableIdeas.Web.Linq.Query.Service.csproj" />
   </ItemGroup>
 

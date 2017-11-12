@@ -33,7 +33,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return _filterService.Build();
         }
 
-		public IQueryable<T> GetSortExpression(string sort, IQueryable<T> queryable)
+		public IQueryable<T> Sort(string sort, IQueryable<T> queryable)
 		{
 			Match match = _sortPattern.Match(sort);
 
