@@ -13,21 +13,22 @@ namespace MutableIdeas.Web.Linq.Query.Test
     public class FilterServiceTest
     {
 		FilterService<TestModel> _filterService;
+		IQueryable<TestModel> queryable;
 
 		public FilterServiceTest()
 		{
 			_filterService = new FilterService<TestModel>();
+
+			queryable = new[] {
+				new TestModel {  LastName = "Mead", Name = "Paul", Page = 1 },
+				new TestModel { LastName = "Castanza", Name = "George", Page = 2 },
+				new TestModel { LastName = "Collins", Name = "Brian", Page = 3 }
+			}.AsQueryable();
 		}
 
 		[TestMethod]
 		public void By()
 		{
-			IQueryable<TestModel> queryable = new[] {
-				new TestModel {  LastName = "Mead", Name = "Paul", Page = 1 },
-				new TestModel { LastName = "Castanza", Name = "George", Page = 2 },
-				new TestModel { LastName = "Collins", Name = "Brian", Page = 3 }
-			}.AsQueryable();
-
 			_filterService.By("name", "Paul", FilterType.Equal);
 			_filterService.Or();
 			_filterService.By("name", "George", FilterType.Equal);

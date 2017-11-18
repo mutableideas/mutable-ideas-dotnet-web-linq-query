@@ -47,8 +47,11 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			Expression right = Expression.Constant(Convert.ChangeType(value, propertyInfo.PropertyType), propertyInfo.PropertyType);
 			Expression comparingExpression = GetComparingExpression(left, right, filterType);
 
-			if (_lastExpression != null && _operator.HasValue)
+			if (_lastExpression != null)
 			{
+				if (!_operator.HasValue)
+					throw new InvalidOperationException("Filter operator must be assigned before adding another expression");
+
 				_lastExpression = GetOperatorExpression(_lastExpression, comparingExpression, _operator.Value);
 				_operator = null;
 				return;
@@ -57,7 +60,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			_lastExpression = comparingExpression;
         }
 
-        public void And()
+		public void And()
         {
             _operator = FilterOperator.And;
         }     
@@ -96,7 +99,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
         Expression GetOperatorExpression(Expression left, Expression right, FilterOperator filterOperator)
         {
-            return filterOperator == FilterOperator.And ? Expression.And(left, right) : Expression.OrElse(left, right);
+            return filterOperator == FilterOperator.And ? Expression.AndAlso(left, right) : Expression.OrElse(left, right);
         }
     }
 }
