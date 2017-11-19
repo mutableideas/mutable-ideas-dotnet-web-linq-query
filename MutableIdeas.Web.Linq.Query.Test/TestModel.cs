@@ -9,5 +9,15 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		public string Name { get; set; }
 		public string LastName { get; set; }
 		public int Page { get; set; }
+		public string[] TestItems { get; set; }
+		public SubTestModel SubTest { get; set; }
+		
+	}
+
+	public class SubTestModel
+	{
+		public string Name { get; set; }
+		public int Index { get; set; }
+		public string[] OrgTags { get; set; } 
 	}
 }

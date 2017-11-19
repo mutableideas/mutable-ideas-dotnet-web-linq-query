@@ -99,5 +99,13 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			models = _expressionService.Sort(qstringFilter, testModels).ToArray();
 			models[0].Page.ShouldBeEquivalentTo(1);
 		}
+
+		[TestMethod]
+		public void TestNested()
+		{
+			string qStringFilter = "subtest.name eq 'Sub%20Test%201'";
+			Expression<Func<TestModel, bool>> expression = _expressionService.GetExpression(qStringFilter);
+			expression.Should().NotBeNull();
+		}
 	}
 }

@@ -20,9 +20,38 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService = new FilterService<TestModel>();
 
 			queryable = new[] {
-				new TestModel {  LastName = "Mead", Name = "Paul", Page = 1 },
-				new TestModel { LastName = "Castanza", Name = "George", Page = 2 },
-				new TestModel { LastName = "Collins", Name = "Brian", Page = 3 }
+				new TestModel {  LastName = "Mead",
+					Name = "Paul",
+					Page = 1,
+					TestItems = new[] { "Test", "Test1", "Test2" },
+					SubTest = new SubTestModel {
+						Index = 1,
+						Name = "Sub Test 1",
+						OrgTags = new[] { "OrgTag1", "OrgTag12" }
+					}
+				},
+				new TestModel {
+					LastName = "Castanza",
+					Name = "George",
+					Page = 2,
+					TestItems = new[] { "Tes12t", "Test13", "Test23" },
+					SubTest = new SubTestModel {
+						Index = 2,
+						Name = "Sub Test 2",
+						OrgTags = new[] { "OrgTag1", "OrgTag22" }
+					}
+				},
+				new TestModel {
+					LastName = "Collins",
+					Name = "Brian",
+					Page = 3,
+					TestItems = new[] { "Test31", "Test32", "Test33" },
+					SubTest = new SubTestModel {
+						Index = 3,
+						Name = "Sub Test 3",
+						OrgTags = new[] { "OrgTag1", "OrgTag32" }
+					}
+				}
 			}.AsQueryable();
 		}
 
@@ -80,6 +109,30 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService.By("lastname", "Co", FilterType.ContainsIgnoreCase);
 			expression = _filterService.Build();
 			queryable.Where(expression).Count().Should().Be(1);
+		}
+
+		[TestMethod]
+		public void TestContains()
+		{
+			_filterService.By("testItems", "Test31", FilterType.Contains);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			queryable.Where(expression).Count().Should().Be(1);
+		}
+
+		[TestMethod]
+		public void MultipleProperties()
+		{
+			_filterService.By("subtest.name", "Test", FilterType.Contains);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			queryable.Where(expression).Count().Should().Be(3);
+
+			_filterService.By("subtest.name", "Sub Test 2", FilterType.Equal);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().Should().Be(1);
+
+			_filterService.By("subtest.orgtags", "OrgTag1", FilterType.Contains);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(3);
 		}
     }
 }

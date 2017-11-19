@@ -20,7 +20,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		public QueryStringExpressionService(IFilterService<T> filterService)
         {
-            _pattern = new Regex(@"(?<propName>[_A-Za-z]{1}\w*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte|ct|ctic){1}\s+(?<value>\'[\w+|\s+%]+\'|[1-9]\d*)(?<operator>\s\w+\s)?");
+            _pattern = new Regex(@"(?<entity>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte|ct|ctic){1}\s+(?<value>\'[\w+|\s+%]+\'|[1-9]\d*)(?<operator>\s\w+\s)?");
 			_sortPattern = new Regex(@"^(?<propName>[_A-Za-z]{1}\w*){1}(\s+(?<order>desc|asc))?$");
 
 			_propertyNames = typeof(T).GetRuntimeProperties().ToDictionary(p => p.Name, p => p);
@@ -41,7 +41,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				throw new FormatException("The filter querystring provided does not meet the expected format.");
 
 			Group orderDirection = match.Groups["order"];
-			string propertyName = match.Groups["propName"].Value;
+			string propertyName = match.Groups["entity"].Value;
 			SortDirection sortDirection = SortDirection.Ascending;
 
 			if (orderDirection != null && orderDirection.Value == "desc")
