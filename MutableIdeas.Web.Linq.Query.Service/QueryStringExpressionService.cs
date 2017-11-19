@@ -41,7 +41,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				throw new FormatException("The filter querystring provided does not meet the expected format.");
 
 			Group orderDirection = match.Groups["order"];
-			string propertyName = match.Groups["entity"].Value;
+			string propertyName = match.Groups["propName"].Value;
 			SortDirection sortDirection = SortDirection.Ascending;
 
 			if (orderDirection != null && orderDirection.Value == "desc")
@@ -59,7 +59,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
             foreach(Match match in matches)
             {
-                string propertyName = match.Groups["propName"].Value;
+                string propertyName = match.Groups["entity"].Value;
 				string value = UnescapeString(match.Groups["value"].Value);
 				Group op = match.Groups["operator"];
 				FilterType filterType = GetFilterType(match.Groups["comparison"].Value);
