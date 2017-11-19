@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,7 +18,9 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		readonly ParameterExpression _pe;
 
 		readonly MethodInfo stringContainsMethod = typeof(string).GetRuntimeMethod("Contains", new[] { typeof(string) });
+		readonly MethodInfo arrayContainsMethod = typeof(IList).GetRuntimeMethod("Contains", new[] { typeof(object) });
 		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
+
 		protected readonly Dictionary<string, PropertyInfo> _propertyInfo;
 
 		public FilterService()
@@ -39,16 +42,15 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
         public void By(string propertyName, string value, FilterType filterType)
         {
-            if (!_propertyInfo.ContainsKey(propertyName.ToLower()))
-                throw new ArgumentException($"Property {propertyName} is not a valid property.");
+			Expression left = ParsePropertyExpression(propertyName);
+			ConstantExpression right = GetConstantExpresion(propertyName, value);
+			Expression comparingExpression = GetComparingExpression(left, right, propertyName, filterType);
 
-			PropertyInfo propertyInfo = _propertyInfo[propertyName.ToLower()];
-			Expression left = Expression.Property(_pe, propertyInfo);
-			Expression right = Expression.Constant(Convert.ChangeType(value, propertyInfo.PropertyType), propertyInfo.PropertyType);
-			Expression comparingExpression = GetComparingExpression(left, right, filterType);
-
-			if (_lastExpression != null && _operator.HasValue)
+			if (_lastExpression != null)
 			{
+				if (!_operator.HasValue)
+					throw new InvalidOperationException("Filter operator must be assigned before adding another expression");
+
 				_lastExpression = GetOperatorExpression(_lastExpression, comparingExpression, _operator.Value);
 				_operator = null;
 				return;
@@ -57,7 +59,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			_lastExpression = comparingExpression;
         }
 
-        public void And()
+		public void And()
         {
             _operator = FilterOperator.And;
         }     
@@ -67,7 +69,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
             _operator = FilterOperator.Or;
         }
 
-        Expression GetComparingExpression(Expression left, Expression right, FilterType filterType)
+        Expression GetComparingExpression(Expression left, ConstantExpression right, string propertyName, FilterType filterType)
         {
             switch(filterType)
             {
@@ -84,7 +86,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
                 case FilterType.NotEqual:
                     return Expression.NotEqual(left, right);
 				case FilterType.Contains:
-					return Expression.Call(left, stringContainsMethod, new[] { right });
+					return GetContainsExpression(left, right, propertyName);
 				case FilterType.ContainsIgnoreCase:
 					Expression leftCase = Expression.Call(left, stringToLowerMethod);
 					Expression rightCase = Expression.Call(right, stringToLowerMethod);
@@ -96,7 +98,61 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
         Expression GetOperatorExpression(Expression left, Expression right, FilterOperator filterOperator)
         {
-            return filterOperator == FilterOperator.And ? Expression.And(left, right) : Expression.OrElse(left, right);
+            return filterOperator == FilterOperator.And ? Expression.AndAlso(left, right) : Expression.OrElse(left, right);
         }
+
+		Expression ParsePropertyExpression(string property)
+		{
+			string[] propertyChain = property.Split('.');
+
+			if (propertyChain.Length == 1)
+			{
+				return Expression.Property(_pe, _propertyInfo[property.ToLower()]);
+			}
+			
+			PropertyInfo propInfo = _propertyInfo[propertyChain[0]];
+			Expression body = _pe;
+
+			for (int index = 0; index < propertyChain.Length; index++)
+			{
+				string propName = propertyChain[index].ToLower();
+
+				if (index > 0)
+					propInfo = propInfo.PropertyType.GetRuntimeProperties()
+						.DefaultIfEmpty(null)
+						.FirstOrDefault(p => p.Name.ToLower() == propName);
+
+				body = Expression.Property(body, propInfo);
+			}
+
+			if (!_propertyInfo.ContainsKey(property))
+				_propertyInfo.Add(property.ToLower(), propInfo);
+
+			return Expression.Lambda(body, _pe).Body;
+		}
+
+		ConstantExpression GetConstantExpresion(string property, string value)
+		{
+			PropertyInfo propInfo = _propertyInfo[property.ToLower()];
+			Type genericType = propInfo.PropertyType.GetTypeInfo()
+				.ImplementedInterfaces.Where(p => p.IsConstructedGenericType).FirstOrDefault();
+
+			Type valueType = genericType == null
+				? propInfo.PropertyType
+				: genericType.GetTypeInfo().GetGenericArguments()[0];
+			object constantValue = Convert.ChangeType(value, valueType);
+
+			return Expression.Constant(constantValue, valueType);
+		}
+
+		MethodCallExpression GetContainsExpression(Expression left, ConstantExpression right, string propertyName)
+		{
+			Type propertyType = _propertyInfo[propertyName.ToLower()].PropertyType;
+
+			MethodInfo methodInfo = propertyType.GetTypeInfo()
+				.ImplementedInterfaces.Any(p => p == typeof(IList)) ? arrayContainsMethod : stringContainsMethod;
+
+			return Expression.Call(left, methodInfo, right);
+		}
     }
 }
