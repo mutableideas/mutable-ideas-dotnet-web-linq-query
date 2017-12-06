@@ -11,6 +11,7 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		public int Page { get; set; }
 		public string[] TestItems { get; set; }
 		public SubTestModel SubTest { get; set; }
+		public IEnumerable<string> TestStrings { get; set; }
 		
 	}
 

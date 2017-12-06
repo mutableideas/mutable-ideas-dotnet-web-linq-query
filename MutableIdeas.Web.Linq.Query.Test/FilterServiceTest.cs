@@ -28,7 +28,8 @@ namespace MutableIdeas.Web.Linq.Query.Test
 						Index = 1,
 						Name = "Sub Test 1",
 						OrgTags = new[] { "OrgTag1", "OrgTag12" }
-					}
+					},
+					TestStrings = new[] { "Org1", "OrgTag12" }
 				},
 				new TestModel {
 					LastName = "Castanza",
@@ -120,6 +121,10 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		{
 			_filterService.By("testItems", "Test31", FilterType.Contains);
 			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			queryable.Where(expression).Count().Should().Be(1);
+
+			_filterService.By("teststrings", "Org1", FilterType.Contains);
+			expression = _filterService.Build();
 			queryable.Where(expression).Count().Should().Be(1);
 		}
 
