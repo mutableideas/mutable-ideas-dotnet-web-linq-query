@@ -110,7 +110,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				return Expression.Property(_pe, _propertyInfo[property.ToLower()]);
 			}
 			
-			PropertyInfo propInfo = _propertyInfo[propertyChain[0]];
+			PropertyInfo propInfo = _propertyInfo[propertyChain[0].ToLower()];
 			Expression body = _pe;
 
 			for (int index = 0; index < propertyChain.Length; index++)

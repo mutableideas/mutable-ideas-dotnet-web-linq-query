@@ -109,6 +109,10 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService.By("lastname", "Co", FilterType.ContainsIgnoreCase);
 			expression = _filterService.Build();
 			queryable.Where(expression).Count().Should().Be(1);
+
+			_filterService.By("SubTest.index", "1", FilterType.Equal);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
 		}
 
 		[TestMethod]
