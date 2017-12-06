@@ -15,8 +15,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MutableIdeas.Web.Linq.Query.Domain" Version="1.3.0" />
     <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MutableIdeas.Web.Linq.Query.Domain\MutableIdeas.Web.Linq.Query.Domain.csproj" />
   </ItemGroup>
 
 </Project>

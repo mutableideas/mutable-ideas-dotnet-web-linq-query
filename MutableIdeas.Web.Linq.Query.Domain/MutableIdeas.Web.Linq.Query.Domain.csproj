@@ -10,7 +10,7 @@
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
   </PropertyGroup>
 
 </Project>
