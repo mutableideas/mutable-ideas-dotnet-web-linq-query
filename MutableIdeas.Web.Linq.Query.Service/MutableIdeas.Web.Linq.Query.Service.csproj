@@ -4,13 +4,14 @@
     <TargetFramework>netstandard1.6</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <Version>1.4.2</Version>
-    <AssemblyVersion>1.4.2.0</AssemblyVersion>
-    <FileVersion>1.4.2.0</FileVersion>
+    <Version>1.4.3</Version>
+    <AssemblyVersion>1.4.3.0</AssemblyVersion>
+    <FileVersion>1.4.3.0</FileVersion>
     <Copyright>MIT</Copyright>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <Authors>Paul Mead</Authors>
     <Company>Webit Flow LLC</Company>
+    <PackageReleaseNotes>Fix for multiple properties where first property need to match the casing of object.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
