@@ -18,7 +18,6 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		readonly ParameterExpression _pe;
 
 		readonly MethodInfo stringContainsMethod = typeof(string).GetRuntimeMethod("Contains", new[] { typeof(string) });
-		readonly MethodInfo arrayContainsMethod = typeof(IList).GetRuntimeMethod("Contains", new[] { typeof(object) });
 		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
 
 		protected readonly Dictionary<string, PropertyInfo> _propertyInfo;
@@ -106,9 +105,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			string[] propertyChain = property.Split('.');
 
 			if (propertyChain.Length == 1)
-			{
 				return Expression.Property(_pe, _propertyInfo[property.ToLower()]);
-			}
 			
 			PropertyInfo propInfo = _propertyInfo[propertyChain[0].ToLower()];
 			Expression body = _pe;
@@ -133,26 +130,34 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		ConstantExpression GetConstantExpresion(string property, string value)
 		{
-			PropertyInfo propInfo = _propertyInfo[property.ToLower()];
-			Type genericType = propInfo.PropertyType.GetTypeInfo()
-				.ImplementedInterfaces.Where(p => p.IsConstructedGenericType).FirstOrDefault();
-
-			Type valueType = genericType == null
-				? propInfo.PropertyType
-				: genericType.GetTypeInfo().GetGenericArguments()[0];
+			Type propType = _propertyInfo[property.ToLower()].PropertyType;
+			Type valueType = propType.FirstGenericParameter() ?? propType;
 			object constantValue = Convert.ChangeType(value, valueType);
 
 			return Expression.Constant(constantValue, valueType);
 		}
 
-		MethodCallExpression GetContainsExpression(Expression left, ConstantExpression right, string propertyName)
+		Expression GetContainsExpression(Expression left, ConstantExpression right, string propertyName)
 		{
-			Type propertyType = _propertyInfo[propertyName.ToLower()].PropertyType;
+			PropertyInfo propInfo = _propertyInfo[propertyName.ToLower()];
+			
+			if (!propInfo.PropertyType.IsEnumerable())
+				return Expression.Call(left, stringContainsMethod, right);
 
-			MethodInfo methodInfo = propertyType.GetTypeInfo()
-				.ImplementedInterfaces.Any(p => p == typeof(IList)) ? arrayContainsMethod : stringContainsMethod;
+			// need a check to make sure the property isn't null
+			ConstantExpression nullExpressionContant = Expression.Constant(null, typeof(object));
+			Expression propertyExpression = ParsePropertyExpression(propertyName);
+			Expression comparingExpression = GetComparingExpression(propertyExpression, nullExpressionContant, propertyName, FilterType.NotEqual);
 
-			return Expression.Call(left, methodInfo, right);
+			MethodCallExpression callExpression = Expression.Call(
+				typeof(Enumerable),
+				"Contains",
+				new[] { propInfo.PropertyType.FirstGenericParameter() },
+				left,
+				right
+			);
+
+			return GetOperatorExpression(comparingExpression, callExpression, FilterOperator.And);
 		}
     }
 }
