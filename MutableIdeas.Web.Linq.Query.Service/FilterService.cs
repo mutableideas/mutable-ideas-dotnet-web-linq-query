@@ -16,6 +16,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
         FilterOperator? _operator;
 		int _parameterIndex = 0;
 		FilterStatement _currentFilterStatement = null;
+		bool _isEnumerable = false;
 
 		readonly ParameterExpression _pe;
 		readonly List<FilterStatement> _filterStatements;
@@ -70,10 +71,16 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 			foreach (FilterStatement filterStatement in _filterStatements)
 			{
+				_isEnumerable = false;
 				_currentFilterStatement = filterStatement;
-				Expression left = ParsePropertyExpression(filterStatement.PropertyName, _pe);
-				ConstantExpression right = GetConstantExpression(filterStatement.PropertyName, filterStatement.Value);
-				Expression comparingExpression = GetComparingExpression(left, right, filterStatement.PropertyName, filterStatement.Comparison);
+
+				Expression comparingExpression = ParsePropertyExpression(filterStatement.PropertyName, filterStatement.Value, typeof(T), _pe);
+
+				if (!_isEnumerable)
+				{
+					ConstantExpression right = GetConstantExpression(filterStatement.PropertyName, filterStatement.Value);
+					comparingExpression = GetComparingExpression(comparingExpression, right, filterStatement.PropertyName, filterStatement.Comparison);
+				}
 
 				if (lastExpression != null)
 				{
@@ -125,12 +132,15 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		Expression ParsePropertyExpression(string property, string value, Type itemType, ParameterExpression propertyExpression)
 		{
 			int index = 0;
-			PropertyInfo propertyInfo = GetPropertyInfo(itemType, property);
 			string[] properties = property.ToLower().Split('.');
+
 			Expression leftExpression = propertyExpression;
+			PropertyInfo propertyInfo = GetPropertyInfo(itemType, properties[0]);
 
 			foreach (string propertyName in properties)
 			{
+				if (propertyInfo == null) break;
+
 				if (index > 0)
 					propertyInfo = GetPropertyInfo(propertyInfo.PropertyType, propertyName);
 
@@ -138,7 +148,9 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 				if (propertyInfo.PropertyType.IsEnumerable())
 				{
-					return AnyExpression(leftExpression, properties, value, propertyInfo.PropertyType);
+					_isEnumerable = true;
+					string[] propNames = properties.Skip(index - 1).ToArray();
+					return AnyExpression(leftExpression, propNames, value, propertyInfo);
 				}
 
 				leftExpression = Expression.Property(leftExpression, propertyInfo);
@@ -189,18 +201,38 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return GetOperatorExpression(comparingExpression, callExpression, FilterOperator.And);
 		}
 
-		Expression AnyExpression(Expression propertyExpression, IEnumerable<string> properties, string value, Type itemType)
+		Expression AnyExpression(Expression propertyExpression, IEnumerable<string> properties, string value, PropertyInfo propertyInfo)
 		{
-			Type genericParameter = itemType.FirstGenericParameter();
+			Type genericParameter = propertyInfo.PropertyType.FirstGenericParameter();
 			Type func = typeof(Func<,>);
 			Type delegateFunc = func.MakeGenericType(genericParameter, typeof(bool));
+
 			ParameterExpression pe = GetParameter(genericParameter);
-			PropertyInfo propInfo = GetPropertyInfo(genericParameter, properties.First());
+			string property = string.Join(".", properties.ToArray().Skip(1));
+			Expression objPropertyExpression = ParsePropertyExpression(property, value, genericParameter, pe);
 
-			string property = string.Join(".", properties.ToArray());
-			Expression leftExpression = ParsePropertyExpression(property, value, propInfo.PropertyType, pe);
+			ConstantExpression constant = GetConstantExpression(value, genericParameter);
+			MemberExpression entityPropertyExpression = Expression.Property(propertyExpression, propertyInfo.Name);
 
-			return null;
+			FilterType filterType = _currentFilterStatement.Comparison == FilterType.Contains
+				? FilterType.Equal
+				: _currentFilterStatement.Comparison;
+
+			objPropertyExpression = Expression.Lambda(GetComparingExpression(objPropertyExpression, constant, string.Empty, filterType), pe);
+
+			Expression anyExpression = Expression.Call(
+				typeof(Enumerable),
+				"Any",
+				new[] { genericParameter },
+				entityPropertyExpression,
+				objPropertyExpression
+			);
+
+			// make sure the property isn't null in the expression
+			ConstantExpression nullExpression = Expression.Constant(null, typeof(object));
+			Expression comparingExpression = GetComparingExpression(entityPropertyExpression, nullExpression, string.Empty, FilterType.NotEqual);
+
+			return GetOperatorExpression(comparingExpression, anyExpression, FilterOperator.And);
 		}
 
 		ParameterExpression GetParameter(Type itemType)
@@ -216,7 +248,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			if (propertyType.HasElementType)
 				propertyType = propertyType.FirstGenericParameter();
 
-			return propertyType.GetRuntimeProperties().First(p => p.Name.ToLower() == propertyName);
+			return propertyType.GetRuntimeProperties().FirstOrDefault(p => p.Name.ToLower() == propertyName);
 		}
 	}
 }
