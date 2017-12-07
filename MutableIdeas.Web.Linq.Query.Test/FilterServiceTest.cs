@@ -82,6 +82,11 @@ namespace MutableIdeas.Web.Linq.Query.Test
 							}
 						}
 					}
+				},
+				new TestModel
+				{
+					LastName = "Anderson",
+					Name = "Cooper"
 				}
 			}.AsQueryable();
 		}
@@ -99,7 +104,7 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 			_filterService.By("name", "Paul", FilterType.NotEqual);
 			expression = _filterService.Build();
-			queryable.Where(expression).ToArray().Count().ShouldBeEquivalentTo(2);
+			queryable.Where(expression).ToArray().Count().ShouldBeEquivalentTo(3);
 
 			_filterService.By("page", "1", FilterType.GreaterThan);
 			expression = _filterService.Build();
@@ -184,6 +189,13 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
 
 			expression = _filterService.For("testmodels.models.value", "Hootie Hoo!", FilterType.Equal).Build();
+			queryable.Where(expression).Count().Should().Be(3);
+		}
+
+		[TestMethod]
+		public void NestEnumerableContains()
+		{
+			Expression<Func<TestModel, bool>> expression = _filterService.For("testmodels.name", "Sub", FilterType.Contains).Build();
 			queryable.Where(expression).Count().Should().Be(3);
 		}
     }

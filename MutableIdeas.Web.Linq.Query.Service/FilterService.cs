@@ -79,7 +79,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				if (!_isEnumerable)
 				{
 					ConstantExpression right = GetConstantExpression(filterStatement.PropertyName, filterStatement.Value);
-					comparingExpression = GetComparingExpression(comparingExpression, right, filterStatement.PropertyName, filterStatement.Comparison);
+					comparingExpression = GetComparingExpression(comparingExpression, right, filterStatement.Comparison);
 				}
 
 				if (lastExpression != null)
@@ -97,7 +97,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return lastExpression;
 		}
 
-        Expression GetComparingExpression(Expression left, ConstantExpression right, string propertyName, FilterType filterType)
+        Expression GetComparingExpression(Expression left, ConstantExpression right, FilterType filterType)
         {
             switch(filterType)
             {
@@ -114,7 +114,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
                 case FilterType.NotEqual:
                     return Expression.NotEqual(left, right);
 				case FilterType.Contains:
-					return GetContainsExpression(left, right, propertyName);
+					return GetContainsExpression(left, right);
 				case FilterType.ContainsIgnoreCase:
 					Expression leftCase = Expression.Call(left, stringToLowerMethod);
 					Expression rightCase = Expression.Call(right, stringToLowerMethod);
@@ -176,29 +176,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return Expression.Constant(constantValue, valueType);
 		}
 
-		Expression GetContainsExpression(Expression left, ConstantExpression right, string propertyName)
+		Expression GetContainsExpression(Expression left, ConstantExpression right)
 		{
-			PropertyInfo propInfo = _propertyInfo[propertyName.ToLower()];
-			
-			if (!propInfo.PropertyType.IsEnumerable())
-				return Expression.Call(left, stringContainsMethod, right);
+			Expression notNullExpression = GetNotNullExpression(left);
+			Expression contains = Expression.Call(left, stringContainsMethod, right);
 
-			// need a check to make sure the property isn't null
-			ConstantExpression nullExpressionContant = Expression.Constant(null, typeof(object));
-
-			// need to come back to this for any bugs with an empty value
-			Expression propertyExpression = ParsePropertyExpression(propertyName, string.Empty, propInfo.PropertyType, _pe);
-			Expression comparingExpression = GetComparingExpression(propertyExpression, nullExpressionContant, propertyName, FilterType.NotEqual);
-
-			MethodCallExpression callExpression = Expression.Call(
-				typeof(Enumerable),
-				"Contains",
-				new[] { propInfo.PropertyType.FirstGenericParameter() },
-				left,
-				right
-			);
-
-			return GetOperatorExpression(comparingExpression, callExpression, FilterOperator.And);
+			return GetOperatorExpression(notNullExpression, contains, FilterOperator.And);
 		}
 
 		Expression AnyExpression(Expression propertyExpression, IEnumerable<string> properties, string value, PropertyInfo propertyInfo)
@@ -213,14 +196,10 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 			MemberExpression entityPropertyExpression = Expression.Property(propertyExpression, propertyInfo.Name);
 
-			FilterType filterType = _currentFilterStatement.Comparison == FilterType.Contains
-				? FilterType.Equal
-				: _currentFilterStatement.Comparison;
-
 			if (objPropertyExpression is MemberExpression || objPropertyExpression is ParameterExpression)
 			{
 				ConstantExpression constant = GetConstantExpression(value, objPropertyExpression.Type);
-				objPropertyExpression = Expression.Lambda(GetComparingExpression(objPropertyExpression, constant, string.Empty, filterType), pe);
+				objPropertyExpression = Expression.Lambda(GetComparingExpression(objPropertyExpression, constant, _currentFilterStatement.Comparison), pe);
 			}
 			else
 			{
@@ -235,11 +214,8 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				objPropertyExpression
 			);
 
-			// make sure the property isn't null in the expression
-			ConstantExpression nullExpression = Expression.Constant(null, typeof(object));
-			Expression comparingExpression = GetComparingExpression(entityPropertyExpression, nullExpression, string.Empty, FilterType.NotEqual);
-
-			return GetOperatorExpression(comparingExpression, anyExpression, FilterOperator.And);
+			Expression nullExpression = GetNotNullExpression(pe);
+			return GetOperatorExpression(nullExpression, anyExpression, FilterOperator.And);
 		}
 
 		ParameterExpression GetParameter(Type itemType)
@@ -256,6 +232,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				propertyType = propertyType.FirstGenericParameter();
 
 			return propertyType.GetRuntimeProperties().FirstOrDefault(p => p.Name.ToLower() == propertyName);
+		}
+
+		Expression GetNotNullExpression(Expression property)
+		{
+			ConstantExpression nullConstant = GetConstantExpression(null, typeof(object));
+			return GetComparingExpression(property, nullConstant, FilterType.NotEqual);
 		}
 	}
 }
