@@ -211,13 +211,13 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			string property = string.Join(".", properties.ToArray().Skip(1));
 			Expression objPropertyExpression = ParsePropertyExpression(property, value, genericParameter, pe);
 
-			ConstantExpression constant = GetConstantExpression(value, genericParameter);
 			MemberExpression entityPropertyExpression = Expression.Property(propertyExpression, propertyInfo.Name);
 
 			FilterType filterType = _currentFilterStatement.Comparison == FilterType.Contains
 				? FilterType.Equal
 				: _currentFilterStatement.Comparison;
 
+			ConstantExpression constant = GetConstantExpression(value, objPropertyExpression.Type);
 			objPropertyExpression = Expression.Lambda(GetComparingExpression(objPropertyExpression, constant, string.Empty, filterType), pe);
 
 			Expression anyExpression = Expression.Call(

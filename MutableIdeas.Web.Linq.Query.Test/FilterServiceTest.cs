@@ -51,6 +51,10 @@ namespace MutableIdeas.Web.Linq.Query.Test
 						Index = 3,
 						Name = "Sub Test 3",
 						OrgTags = new[] { "OrgTag1", "OrgTag32" }
+					},
+					TestModels = new[] {
+						new SubTestModel { Name = "Sub Test 3" },
+						new SubTestModel { Name = "Sub Test 1" }
 					}
 				}
 			}.AsQueryable();
@@ -138,6 +142,14 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService.By("subtest.orgtags", "OrgTag1", FilterType.Contains);
 			expression = _filterService.Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(3);
+		}
+
+		[TestMethod]
+		public void NestedEnumerable()
+		{
+			_filterService.By("testmodels.name", "Sub Test 3", FilterType.Equal);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
 		}
     }
 }
