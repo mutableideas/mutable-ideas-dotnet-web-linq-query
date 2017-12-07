@@ -217,8 +217,15 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				? FilterType.Equal
 				: _currentFilterStatement.Comparison;
 
-			ConstantExpression constant = GetConstantExpression(value, objPropertyExpression.Type);
-			objPropertyExpression = Expression.Lambda(GetComparingExpression(objPropertyExpression, constant, string.Empty, filterType), pe);
+			if (objPropertyExpression is MemberExpression || objPropertyExpression is ParameterExpression)
+			{
+				ConstantExpression constant = GetConstantExpression(value, objPropertyExpression.Type);
+				objPropertyExpression = Expression.Lambda(GetComparingExpression(objPropertyExpression, constant, string.Empty, filterType), pe);
+			}
+			else
+			{
+				objPropertyExpression = Expression.Lambda(objPropertyExpression, pe);
+			}
 
 			Expression anyExpression = Expression.Call(
 				typeof(Enumerable),

@@ -22,5 +22,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 			return filterService;
 		}
+
+		public static IFilterService<T> For<T>(this IFilterService<T> filterService, string property, string value, FilterType filterType)
+			where T : class
+		{
+			filterService.By(property, value, filterType);
+			return filterService;
+		}
     }
 }

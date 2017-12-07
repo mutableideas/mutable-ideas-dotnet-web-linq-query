@@ -20,6 +20,13 @@ namespace MutableIdeas.Web.Linq.Query.Test
 	{
 		public string Name { get; set; }
 		public int Index { get; set; }
-		public string[] OrgTags { get; set; } 
+		public string[] OrgTags { get; set; }
+		public AnotherModel Model { get; set; }
+		public IEnumerable<AnotherModel> Models { get; set; }
+	}
+
+	public class AnotherModel
+	{
+		public string Value { get; set; }
 	}
 }

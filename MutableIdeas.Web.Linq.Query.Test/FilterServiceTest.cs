@@ -29,7 +29,17 @@ namespace MutableIdeas.Web.Linq.Query.Test
 						Name = "Sub Test 1",
 						OrgTags = new[] { "OrgTag1", "OrgTag12" }
 					},
-					TestStrings = new[] { "Org1", "OrgTag12" }
+					TestStrings = new[] { "Org1", "OrgTag12" },
+					TestModels = new[] {
+						new SubTestModel {
+							Name = "Sub Test 1",
+							Model = new AnotherModel { Value = "Howdy!1" },
+							Models = new[]
+							{
+								new AnotherModel { Value = "Hootie Hoo!" }
+							}
+						}
+					}
 				},
 				new TestModel {
 					LastName = "Castanza",
@@ -40,6 +50,16 @@ namespace MutableIdeas.Web.Linq.Query.Test
 						Index = 2,
 						Name = "Sub Test 2",
 						OrgTags = new[] { "OrgTag1", "OrgTag22" }
+					},
+					TestModels = new[] {
+						new SubTestModel {
+							Name = "Sub Test 3",
+							Model = new AnotherModel { Value = "Howdy!2" },
+							Models = new[]
+							{
+								new AnotherModel { Value = "Hootie Hoo!" }
+							}
+						}
 					}
 				},
 				new TestModel {
@@ -53,8 +73,14 @@ namespace MutableIdeas.Web.Linq.Query.Test
 						OrgTags = new[] { "OrgTag1", "OrgTag32" }
 					},
 					TestModels = new[] {
-						new SubTestModel { Name = "Sub Test 3" },
-						new SubTestModel { Name = "Sub Test 1" }
+						new SubTestModel {
+							Name = "Sub Test 5",
+							Model = new AnotherModel { Value = "Howdy!" },
+							Models = new[]
+							{
+								new AnotherModel { Value = "Hootie Hoo!" }
+							}
+						}
 					}
 				}
 			}.AsQueryable();
@@ -135,7 +161,7 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			Expression<Func<TestModel, bool>> expression = _filterService.Build();
 			queryable.Where(expression).Count().Should().Be(3);
 
-			_filterService.By("subtest.name", "Sub Test 2", FilterType.Equal);
+			_filterService.By("subtest.name", "Sub Test 1", FilterType.Equal);
 			expression = _filterService.Build();
 			queryable.Where(expression).Count().Should().Be(1);
 
@@ -147,9 +173,18 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		[TestMethod]
 		public void NestedEnumerable()
 		{
-			_filterService.By("testmodels.name", "Sub Test 3", FilterType.Equal);
-			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			Expression<Func<TestModel, bool>> expression = _filterService.For("testmodels.name", "Sub Test 3", FilterType.Equal).Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
+
+			expression = _filterService.For("testmodels.name", "Sub Test 1", FilterType.NotEqual).Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(2);
+
+			_filterService.For("testmodels.model.value", "Howdy!", FilterType.Equal);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
+
+			expression = _filterService.For("testmodels.models.value", "Hootie Hoo!", FilterType.Equal).Build();
+			queryable.Where(expression).Count().Should().Be(3);
 		}
     }
 }
