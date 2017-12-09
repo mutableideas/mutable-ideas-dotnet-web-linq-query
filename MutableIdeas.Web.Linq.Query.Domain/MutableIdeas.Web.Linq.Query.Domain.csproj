@@ -10,7 +10,8 @@
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.4.0</Version>
+    <Version>1.5.0</Version>
+    <PackageReleaseNotes>Contains a filter statement and in operator</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
