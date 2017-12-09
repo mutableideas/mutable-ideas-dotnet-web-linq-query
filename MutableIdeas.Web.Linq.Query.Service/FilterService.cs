@@ -70,11 +70,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			Expression lastExpression = null;
 
 			foreach (FilterStatement filterStatement in _filterStatements)
-			{
+			{		
 				_isEnumerable = false;
 				_currentFilterStatement = filterStatement;
 
-				Expression comparingExpression = ParsePropertyExpression(filterStatement.PropertyName, filterStatement.Value, typeof(T), _pe);
+				var properties = new List<MemberExpression>();
+				Expression comparingExpression = ParsePropertyExpression(filterStatement.PropertyName, filterStatement.Value, typeof(T), _pe, properties.Add);
 
 				if (!_isEnumerable)
 				{
@@ -92,6 +93,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				}
 
 				lastExpression = comparingExpression;
+
+				if (properties.Count() > 0)
+				{
+					Expression expression = NullCheckProperties(properties);
+					lastExpression = GetOperatorExpression(expression, lastExpression, FilterOperator.And);
+				}
 			}
 
 			return lastExpression;
@@ -129,7 +136,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
             return filterOperator == FilterOperator.And ? Expression.AndAlso(left, right) : Expression.OrElse(left, right);
         }
 
-		Expression ParsePropertyExpression(string property, string value, Type itemType, ParameterExpression propertyExpression)
+		Expression ParsePropertyExpression(
+			string property,
+			string value,
+			Type itemType,
+			ParameterExpression propertyExpression,
+			Action<MemberExpression> action)
 		{
 			int index = 0;
 			string[] properties = property.ToLower().Split('.');
@@ -154,6 +166,9 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				}
 
 				leftExpression = Expression.Property(leftExpression, propertyInfo);
+
+				if (!propertyInfo.PropertyType.IsNumeric())
+					action(leftExpression as MemberExpression);
 			}
 
 			if (!_propertyInfo.ContainsKey(_currentFilterStatement.PropertyName))
@@ -178,28 +193,34 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		Expression GetContainsExpression(Expression left, ConstantExpression right)
 		{
-			Expression notNullExpression = GetNotNullExpression(left);
-			Expression contains = Expression.Call(left, stringContainsMethod, right);
-
-			return GetOperatorExpression(notNullExpression, contains, FilterOperator.And);
+			return Expression.Call(left, stringContainsMethod, right);
 		}
 
 		Expression AnyExpression(Expression propertyExpression, IEnumerable<string> properties, string value, PropertyInfo propertyInfo)
 		{
+			List<MemberExpression> memberProperties = new List<MemberExpression>();
 			Type genericParameter = propertyInfo.PropertyType.FirstGenericParameter();
 			Type func = typeof(Func<,>);
 			Type delegateFunc = func.MakeGenericType(genericParameter, typeof(bool));
 
 			ParameterExpression pe = GetParameter(genericParameter);
 			string property = string.Join(".", properties.ToArray().Skip(1));
-			Expression objPropertyExpression = ParsePropertyExpression(property, value, genericParameter, pe);
+			Expression objPropertyExpression = ParsePropertyExpression(property, value, genericParameter, pe, memberProperties.Add);
 
 			MemberExpression entityPropertyExpression = Expression.Property(propertyExpression, propertyInfo.Name);
 
 			if (objPropertyExpression is MemberExpression || objPropertyExpression is ParameterExpression)
 			{
 				ConstantExpression constant = GetConstantExpression(value, objPropertyExpression.Type);
-				objPropertyExpression = Expression.Lambda(GetComparingExpression(objPropertyExpression, constant, _currentFilterStatement.Comparison), pe);
+				Expression comparingExpression = GetComparingExpression(objPropertyExpression, constant, _currentFilterStatement.Comparison);
+
+				if (memberProperties.Count() > 0)
+				{
+					Expression nullPropertyExpressions = NullCheckProperties(memberProperties);
+					comparingExpression = GetOperatorExpression(nullPropertyExpressions, comparingExpression, FilterOperator.And);
+				}
+
+				objPropertyExpression = Expression.Lambda(comparingExpression, pe);
 			}
 			else
 			{
@@ -214,7 +235,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				objPropertyExpression
 			);
 
-			Expression nullExpression = GetNotNullExpression(pe);
+			Expression nullExpression = GetNotNullExpression(entityPropertyExpression);
 			return GetOperatorExpression(nullExpression, anyExpression, FilterOperator.And);
 		}
 
@@ -238,6 +259,25 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		{
 			ConstantExpression nullConstant = GetConstantExpression(null, typeof(object));
 			return GetComparingExpression(property, nullConstant, FilterType.NotEqual);
+		}
+
+		Expression NullCheckProperties(IEnumerable<MemberExpression> expressions)
+		{
+			Expression operatorExpression = null;
+
+			foreach (MemberExpression memberExpression in expressions)
+			{
+				Expression notNull = GetNotNullExpression(memberExpression);
+				if (operatorExpression == null)
+				{
+					operatorExpression = notNull;
+					continue;
+				}
+
+				operatorExpression = GetOperatorExpression(operatorExpression, notNull, FilterOperator.And);
+			}
+
+			return operatorExpression;
 		}
 	}
 }
