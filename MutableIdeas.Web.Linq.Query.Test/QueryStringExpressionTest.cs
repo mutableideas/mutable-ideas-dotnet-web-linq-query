@@ -106,6 +106,20 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		}
 
 		[TestMethod]
+		public void NumericValues()
+		{
+			IQueryable<TestModel> testModels = new TestModel[] {
+				new TestModel { LastName = "Castanza", Name = "George", Page = 0, Points = 3.2M },
+				new TestModel { LastName = "Yzerman", Name = "Steve", Page = 1, Points = 0.5M },
+				new TestModel { LastName = "Federov", Name = "Sergei", Page = 2, Points = 3000.888M }
+			}.AsQueryable();
+
+			string qstringFilter = "page gt 0.555";
+			Expression<Func<TestModel, bool>> expression = _expressionService.GetExpression(qstringFilter);
+			expression.Should().NotBeNull();
+		}
+
+		[TestMethod]
 		public void TestNested()
 		{
 			string qStringFilter = "subtest.name eq 'Sub%20Test%201'";
