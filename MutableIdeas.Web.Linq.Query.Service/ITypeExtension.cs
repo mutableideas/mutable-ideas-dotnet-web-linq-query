@@ -25,7 +25,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		{
 			Type genericItemType = itemType.FirstGenericParameter();
 			MethodInfo containsMethod = typeof(Enumerable).GetRuntimeMethods()
-				.First(p => p.Name == "Contains");
+				.First(p => p.Name == "Contains" && p.GetParameters().Count() == 2);
 			MethodInfo genericContains = containsMethod.MakeGenericMethod(itemType);
 
 			return genericContains;
