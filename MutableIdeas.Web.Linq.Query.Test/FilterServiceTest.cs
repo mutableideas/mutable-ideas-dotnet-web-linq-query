@@ -213,6 +213,14 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService.By("name", "['George', 'Paul']", FilterType.In);
 			expression = _filterService.Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(2);
+
+			_filterService.By("subtest.name", "['Sub Test 2', 'Sub Test 1']", FilterType.In);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(2);
+
+			_filterService.By("testmodels.name", "['Sub Test 5', 'Sub Test 3']", FilterType.In);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(2);
 		}
     }
 }

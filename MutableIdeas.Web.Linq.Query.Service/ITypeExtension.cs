@@ -15,10 +15,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		public static Type FirstGenericParameter(this Type itemType)
 		{
-			if (itemType.IsArray)
-				return itemType.GetElementType();
-
-			return itemType.GenericTypeArguments.FirstOrDefault();
+			return itemType.IsArray ? itemType.GetElementType() : itemType.GenericTypeArguments.FirstOrDefault();
 		}
 
 		public static MethodInfo GetContainsMethod(this Type itemType)
@@ -50,6 +47,14 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			}
 
 			return false;
+		}
+
+		public static PropertyInfo GetPropertyInfo(this Type propertyType, string name)
+		{
+			if (propertyType.HasElementType)
+				propertyType = propertyType.FirstGenericParameter();
+
+			return propertyType.GetRuntimeProperties().FirstOrDefault(p => p.Name.ToLower() == name.ToLower());
 		}
     }
 }
