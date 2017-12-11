@@ -206,10 +206,13 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			Expression<Func<TestModel, bool>> expression = _filterService.Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
 
-			_filterService.By("page", "[1,2,3]", FilterType.In);
+			_filterService.By("page", "[1, 2, 3]", FilterType.In);
 			expression = _filterService.Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(3);
-		}
 
+			_filterService.By("name", "['George', 'Paul']", FilterType.In);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(2);
+		}
     }
 }
