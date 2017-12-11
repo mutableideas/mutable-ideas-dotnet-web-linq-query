@@ -11,10 +11,10 @@ using System.Collections;
 
 namespace MutableIdeas.Web.Linq.Query.Service
 {
-    public class FilterService<T> : IFilterService<T>
+	public class FilterService<T> : IFilterService<T>
 		where T : class
-    {
-        FilterOperator? _operator;
+	{
+		FilterOperator? _operator;
 		int _parameterIndex = 0;
 		FilterStatement _currentFilterStatement = null;
 		bool _isEnumerable = false;
@@ -25,6 +25,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		readonly MethodInfo stringContainsMethod = typeof(string).GetRuntimeMethod("Contains", new[] { typeof(string) });
 		readonly MethodInfo arrayContainsMethod = typeof(IList).GetRuntimeMethod("Contains", new[] { typeof(object) });
 		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
+		readonly MethodInfo getArrayConstant = typeof(ExpressionExtension).GetRuntimeMethods().First(p => p.Name == "GetArrayConstantValue");
 
 		protected Dictionary<string, PropertyInfo> _propertyInfo;
 		
@@ -195,9 +196,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 			if (value != null && value.StartsWith("[") && value.EndsWith("]"))
 			{
-				MethodInfo methodInfo = GetType().GetRuntimeMethods().First(p => p.Name == "GetArrayConstantValue");
-				MethodInfo genericMethod = methodInfo.MakeGenericMethod(valueType);
-
+				MethodInfo genericMethod = getArrayConstant.MakeGenericMethod(valueType);
 				return genericMethod.Invoke(null, new[] { value }) as ConstantExpression;
 			}
 
@@ -205,17 +204,6 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return Expression.Constant(constantValue, valueType);
 		}
 
-		static ConstantExpression GetArrayConstantValue<V>(string value)
-		{
-			Type valueType = typeof(V);
-			var values = value.Replace("[", string.Empty)
-				.Replace("]", string.Empty)
-				.Split(',')
-				.Select(p => (V)Convert.ChangeType(p.UnescapeUrlValue(), valueType))
-				.ToList();
-
-			return Expression.Constant(values.ToArray(), typeof(V[]));
-		}
 
 		Expression GetContainsExpression(Expression left, ConstantExpression right)
 		{
@@ -307,17 +295,13 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		{
 			Expression operatorExpression = null;
 
-			foreach (MemberExpression memberExpression in expressions)
+			expressions.Each(exp =>
 			{
-				Expression notNull = GetNotNullExpression(memberExpression);
-				if (operatorExpression == null)
-				{
-					operatorExpression = notNull;
-					continue;
-				}
-
-				operatorExpression = GetOperatorExpression(operatorExpression, notNull, FilterOperator.And);
-			}
+				Expression notNull = GetNotNullExpression(exp);
+				operatorExpression = operatorExpression == null
+					? notNull
+					: GetOperatorExpression(operatorExpression, notNull, FilterOperator.And);
+			});
 
 			return operatorExpression;
 		}
