@@ -198,5 +198,21 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			Expression<Func<TestModel, bool>> expression = _filterService.For("testmodels.name", "Sub", FilterType.Contains).Build();
 			queryable.Where(expression).Count().Should().Be(3);
 		}
+
+		[TestMethod]
+		public void InEnumerable()
+		{
+			_filterService.By("page", "[1]", FilterType.In);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
+
+			_filterService.By("page", "[1, 2, 3]", FilterType.In);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(3);
+
+			_filterService.By("name", "['George', 'Paul']", FilterType.In);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(2);
+		}
     }
 }

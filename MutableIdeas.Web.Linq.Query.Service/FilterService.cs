@@ -7,6 +7,7 @@ using System.Reflection;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Domain.Services;
 using MutableIdeas.Web.Linq.Query.Domain.Models;
+using System.Collections;
 
 namespace MutableIdeas.Web.Linq.Query.Service
 {
@@ -22,6 +23,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		readonly List<FilterStatement> _filterStatements;
 
 		readonly MethodInfo stringContainsMethod = typeof(string).GetRuntimeMethod("Contains", new[] { typeof(string) });
+		readonly MethodInfo arrayContainsMethod = typeof(IList).GetRuntimeMethod("Contains", new[] { typeof(object) });
 		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
 
 		protected Dictionary<string, PropertyInfo> _propertyInfo;
@@ -104,7 +106,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return lastExpression;
 		}
 
-        Expression GetComparingExpression(Expression left, ConstantExpression right, FilterType filterType)
+        Expression GetComparingExpression(Expression left, Expression right, FilterType filterType)
         {
             switch(filterType)
             {
@@ -121,11 +123,13 @@ namespace MutableIdeas.Web.Linq.Query.Service
                 case FilterType.NotEqual:
                     return Expression.NotEqual(left, right);
 				case FilterType.Contains:
-					return GetContainsExpression(left, right);
+					return GetContainsExpression(left, right as ConstantExpression);
 				case FilterType.ContainsIgnoreCase:
 					Expression leftCase = Expression.Call(left, stringToLowerMethod);
 					Expression rightCase = Expression.Call(right, stringToLowerMethod);
 					return Expression.Call(leftCase, stringContainsMethod, new[] { rightCase });
+				case FilterType.In:
+					return EnumerableContains(right as ConstantExpression, left as MemberExpression);
             }
 
             throw new ArgumentException($"The filter type {filterType} does not exist.");
@@ -187,13 +191,51 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		ConstantExpression GetConstantExpression(string value, Type valueType)
 		{
-			object constantValue = Convert.ChangeType(value, valueType);
+			object constantValue;
+
+			if (value != null && value.StartsWith("[") && value.EndsWith("]"))
+			{
+				MethodInfo methodInfo = GetType().GetRuntimeMethods().First(p => p.Name == "GetArrayConstantValue");
+				MethodInfo genericMethod = methodInfo.MakeGenericMethod(valueType);
+
+				return genericMethod.Invoke(null, new[] { value }) as ConstantExpression;
+			}
+
+			constantValue = Convert.ChangeType(value, valueType);
 			return Expression.Constant(constantValue, valueType);
+		}
+
+		static ConstantExpression GetArrayConstantValue<V>(string value)
+		{
+			Type valueType = typeof(V);
+			var values = value.Replace("[", string.Empty)
+				.Replace("]", string.Empty)
+				.Split(',')
+				.Select(p => (V)Convert.ChangeType(p.UnescapeUrlValue(), valueType))
+				.ToList();
+
+			return Expression.Constant(values.ToArray(), typeof(V[]));
 		}
 
 		Expression GetContainsExpression(Expression left, ConstantExpression right)
 		{
 			return Expression.Call(left, stringContainsMethod, right);
+		}
+
+		Expression EnumerableContains(ConstantExpression constantExpression, MemberExpression memberExpression)
+		{
+			Type genericType = constantExpression.Type.FirstGenericParameter();
+			MethodInfo containsMethod = constantExpression.Type.GetContainsMethod();
+			ParameterExpression parameter = GetParameter(genericType);
+			Expression lambda = Expression.Lambda(GetComparingExpression(memberExpression, parameter, FilterType.Equal), parameter);
+
+			return Expression.Call(
+				typeof(Enumerable),
+				"Any",
+				new[] { genericType },
+				constantExpression,
+				lambda
+			);
 		}
 
 		Expression AnyExpression(Expression propertyExpression, IEnumerable<string> properties, string value, PropertyInfo propertyInfo)

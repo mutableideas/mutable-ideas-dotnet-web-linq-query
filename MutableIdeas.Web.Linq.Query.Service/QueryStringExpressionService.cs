@@ -20,7 +20,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		public QueryStringExpressionService(IFilterService<T> filterService)
         {
-            _pattern = new Regex(@"(?<entity>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte|ct|ctic){1}\s+(?<value>\'[\w+|\s+%-]+\'|\d*\.?\d*)(?<operator>\s\w+\s)?");
+            _pattern = new Regex(@"(?<entity>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte|ct|ctic|in){1}\s+(?<value>\[(('[\w+|\s+%-]+\'|\d*\.?\d*),?)*\]|\'[\w+|\s+%-]+\'|\d*\.?\d*)(?<operator>\s\w+\s)?");
 			_sortPattern = new Regex(@"^(?<propName>[_A-Za-z]{1}\w*){1}(\s+(?<order>desc|asc))?$");
 
 			_propertyNames = typeof(T).GetRuntimeProperties().ToDictionary(p => p.Name, p => p);
@@ -60,7 +60,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
             foreach(Match match in matches)
             {
                 string propertyName = match.Groups["entity"].Value;
-				string value = UnescapeString(match.Groups["value"].Value);
+				string value = match.Groups["value"].Value.UnescapeUrlValue();
 				Group op = match.Groups["operator"];
 				FilterType filterType = GetFilterType(match.Groups["comparison"].Value);
 
@@ -133,16 +133,5 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
             throw new ArgumentException($"The filter type {filterType} does not exist.");
         }
-
-		string UnescapeString(string value)
-		{
-			if (value.StartsWith("'"))
-			{
-				value = Uri.UnescapeDataString(value.Replace("'", string.Empty));
-				return value;
-			}
-
-			return value;
-		}
     }
 }
