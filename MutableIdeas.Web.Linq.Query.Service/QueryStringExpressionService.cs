@@ -108,6 +108,8 @@ namespace MutableIdeas.Web.Linq.Query.Service
 					return FilterType.Contains;
 				case "ctic":
 					return FilterType.ContainsIgnoreCase;
+				case "in":
+					return FilterType.In;
             }
 
             throw new FormatException($"{comparison} is not a supported comparison type.");

@@ -73,6 +73,11 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			qStringFilter = "userId eq '13ee038a-29a1-4640-bea6-e088a5d6e89b'";
 			expression = _expressionService.GetExpression(qStringFilter);
 			expression.Should().NotBeNull();
+
+			// in value
+			qStringFilter = "userId in ['', '']";
+			expression = _expressionService.GetExpression(qStringFilter);
+			expression.Should().NotBeNull();
 		}
 
 		[TestMethod]
