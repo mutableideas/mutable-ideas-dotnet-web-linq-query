@@ -75,7 +75,12 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			expression.Should().NotBeNull();
 
 			// in value
-			qStringFilter = "userId in ['', '']";
+			qStringFilter = "userId in [1, 2]";
+			expression = _expressionService.GetExpression(qStringFilter);
+			expression.Should().NotBeNull();
+
+			// in string value
+			qStringFilter = "userId in ['1', '2', '3',  'Paul']";
 			expression = _expressionService.GetExpression(qStringFilter);
 			expression.Should().NotBeNull();
 		}
