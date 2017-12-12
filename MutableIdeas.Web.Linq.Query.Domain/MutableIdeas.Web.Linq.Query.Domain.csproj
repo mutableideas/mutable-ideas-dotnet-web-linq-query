@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net46;</TargetFrameworks>
+  </PropertyGroup>
+
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputType>Library</OutputType>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <ApplicationIcon />
+  <PropertyGroup Condition="'$(TargetFramework)'=='netstandard2.0'">
     <OutputTypeEx>library</OutputTypeEx>
     <StartupObject />
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>

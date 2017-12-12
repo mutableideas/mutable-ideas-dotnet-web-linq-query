@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,14 +8,13 @@ using System.Reflection;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Domain.Services;
 using MutableIdeas.Web.Linq.Query.Domain.Models;
-using System.Collections;
 
 namespace MutableIdeas.Web.Linq.Query.Service
 {
-    public class FilterService<T> : IFilterService<T>
+	public class FilterService<T> : IFilterService<T>
 		where T : class
-    {
-        FilterOperator? _operator;
+	{
+		FilterOperator? _operator;
 		int _parameterIndex = 0;
 		FilterStatement _currentFilterStatement = null;
 		bool _isEnumerable = false;
@@ -22,14 +22,14 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		readonly ParameterExpression _pe;
 		readonly List<FilterStatement> _filterStatements;
 
-		readonly MethodInfo stringContainsMethod = typeof(string).GetRuntimeMethod("Contains", new[] { typeof(string) });
 		readonly MethodInfo arrayContainsMethod = typeof(IList).GetRuntimeMethod("Contains", new[] { typeof(object) });
 		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
+		readonly MethodInfo getArrayConstant = typeof(ExpressionExtension).GetRuntimeMethods().First(p => p.Name == "GetArrayConstantValue");
 
 		protected Dictionary<string, PropertyInfo> _propertyInfo;
-		
+
 		public FilterService()
-        {
+		{
 			_filterStatements = new List<FilterStatement>();
 			_propertyInfo = new Dictionary<string, PropertyInfo>();
 			_pe = Expression.Parameter(typeof(T), "entity");
@@ -37,7 +37,8 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		public Expression<Func<T, bool>> Build()
 		{
-			Expression<Func<T, bool>> lambda = Expression.Lambda<Func<T, bool>>(BuildStatements(), _pe);
+			ParameterExpression pe = GetParameter(typeof(T));
+			Expression<Func<T, bool>> lambda = Expression.Lambda<Func<T, bool>>(BuildStatements(pe), pe);
 
 			_filterStatements.Clear();
 			_operator = null;
@@ -46,8 +47,11 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return lambda;
 		}
 
-        public void By(string propertyName, string value, FilterType filterType)
-        {
+		public void By(string propertyName, string value, FilterType filterType)
+		{
+			if (_filterStatements.Count() == 1 && !_operator.HasValue)
+				throw new InvalidOperationException("Filter statement must be joined by an \'And\' or \'Or\' operator.");
+
 			_filterStatements.Add(new FilterStatement
 			{
 				Comparison = filterType,
@@ -55,53 +59,65 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				PropertyName = propertyName.ToLower(),
 				Value = value
 			});
-        }
+		}
 
 		public void And()
-        {
-            _operator = FilterOperator.And;
-        }     
+		{
+			CheckFilters();
+			_operator = FilterOperator.And;
+		}
 
-        public void Or()
-        {
-            _operator = FilterOperator.Or;
-        }
+		public void Or()
+		{
+			CheckFilters();
+			_operator = FilterOperator.Or;
+		}
 
-		Expression BuildStatements()
+		void CheckFilters()
+		{
+			if (_filterStatements.Count() == 0)
+				throw new InvalidOperationException("No filter statements have been supplied to join the statements with an 'and' or 'or'.");
+		}
+
+		Expression BuildStatements(ParameterExpression pe)
 		{
 			Expression lastExpression = null;
+			Type filterEntityType = typeof(T);
+			List<MemberExpression> properties;
+			Expression comparingExpression;
 
-			foreach (FilterStatement filterStatement in _filterStatements)
-			{		
+			_filterStatements.Each(statement =>
+			{
 				_isEnumerable = false;
-				_currentFilterStatement = filterStatement;
+				_currentFilterStatement = statement;
 
-				var properties = new List<MemberExpression>();
-				Expression comparingExpression = ParsePropertyExpression(filterStatement.PropertyName, filterStatement.Value, typeof(T), _pe, properties.Add);
+				properties = new List<MemberExpression>();
+				comparingExpression = ParsePropertyExpression(statement.PropertyName, statement.Value, filterEntityType, pe, properties.Add);
 
 				if (!_isEnumerable)
 				{
-					ConstantExpression right = GetConstantExpression(filterStatement.PropertyName, filterStatement.Value);
-					comparingExpression = GetComparingExpression(comparingExpression, right, filterStatement.Comparison);
+					ConstantExpression right = GetConstantExpression(statement.PropertyName, statement.Value);
+					comparingExpression = GetComparingExpression(comparingExpression, right, statement.Comparison);
 				}
 
 				if (lastExpression != null)
 				{
-					if (!filterStatement.Operator.HasValue)
+					if (!statement.Operator.HasValue)
 						throw new InvalidOperationException("Filter operator must be assigned before adding another expression");
 
-					lastExpression = GetOperatorExpression(lastExpression, comparingExpression, filterStatement.Operator.Value);
-					continue;
+					lastExpression = GetOperatorExpression(lastExpression, comparingExpression, statement.Operator.Value);
 				}
-
-				lastExpression = comparingExpression;
-
-				if (properties.Count() > 0)
+				else
 				{
-					Expression expression = NullCheckProperties(properties);
-					lastExpression = GetOperatorExpression(expression, lastExpression, FilterOperator.And);
+					lastExpression = comparingExpression;
+
+					if (properties.Count() > 0)
+					{
+						Expression expression = NullCheckProperties(properties);
+						lastExpression = GetOperatorExpression(expression, lastExpression, FilterOperator.And);
+					}
 				}
-			}
+			});
 
 			return lastExpression;
 		}
@@ -123,11 +139,11 @@ namespace MutableIdeas.Web.Linq.Query.Service
                 case FilterType.NotEqual:
                     return Expression.NotEqual(left, right);
 				case FilterType.Contains:
-					return GetContainsExpression(left, right as ConstantExpression);
+					return ExpressionExtension.ContainsExpression(left, right);
 				case FilterType.ContainsIgnoreCase:
 					Expression leftCase = Expression.Call(left, stringToLowerMethod);
 					Expression rightCase = Expression.Call(right, stringToLowerMethod);
-					return Expression.Call(leftCase, stringContainsMethod, new[] { rightCase });
+					return ExpressionExtension.ContainsExpression(leftCase, rightCase);
 				case FilterType.In:
 					return EnumerableContains(right as ConstantExpression, left as MemberExpression);
             }
@@ -151,14 +167,14 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			string[] properties = property.ToLower().Split('.');
 
 			Expression leftExpression = propertyExpression;
-			PropertyInfo propertyInfo = GetPropertyInfo(itemType, properties[0]);
+			PropertyInfo propertyInfo = itemType.GetPropertyInfo(properties[0]);
 
 			foreach (string propertyName in properties)
 			{
 				if (propertyInfo == null) break;
 
 				if (index > 0)
-					propertyInfo = GetPropertyInfo(propertyInfo.PropertyType, propertyName);
+					propertyInfo = propertyInfo.PropertyType.GetPropertyInfo(propertyName);
 
 				index++;
 
@@ -195,31 +211,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 			if (value != null && value.StartsWith("[") && value.EndsWith("]"))
 			{
-				MethodInfo methodInfo = GetType().GetRuntimeMethods().First(p => p.Name == "GetArrayConstantValue");
-				MethodInfo genericMethod = methodInfo.MakeGenericMethod(valueType);
-
+				MethodInfo genericMethod = getArrayConstant.MakeGenericMethod(valueType);
 				return genericMethod.Invoke(null, new[] { value }) as ConstantExpression;
 			}
 
 			constantValue = Convert.ChangeType(value, valueType);
 			return Expression.Constant(constantValue, valueType);
-		}
-
-		static ConstantExpression GetArrayConstantValue<V>(string value)
-		{
-			Type valueType = typeof(V);
-			var values = value.Replace("[", string.Empty)
-				.Replace("]", string.Empty)
-				.Split(',')
-				.Select(p => (V)Convert.ChangeType(p.UnescapeUrlValue(), valueType))
-				.ToList();
-
-			return Expression.Constant(values.ToArray(), typeof(V[]));
-		}
-
-		Expression GetContainsExpression(Expression left, ConstantExpression right)
-		{
-			return Expression.Call(left, stringContainsMethod, right);
 		}
 
 		Expression EnumerableContains(ConstantExpression constantExpression, MemberExpression memberExpression)
@@ -307,17 +304,13 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		{
 			Expression operatorExpression = null;
 
-			foreach (MemberExpression memberExpression in expressions)
+			expressions.Each(exp =>
 			{
-				Expression notNull = GetNotNullExpression(memberExpression);
-				if (operatorExpression == null)
-				{
-					operatorExpression = notNull;
-					continue;
-				}
-
-				operatorExpression = GetOperatorExpression(operatorExpression, notNull, FilterOperator.And);
-			}
+				Expression notNull = GetNotNullExpression(exp);
+				operatorExpression = operatorExpression == null
+					? notNull
+					: GetOperatorExpression(operatorExpression, notNull, FilterOperator.And);
+			});
 
 			return operatorExpression;
 		}
