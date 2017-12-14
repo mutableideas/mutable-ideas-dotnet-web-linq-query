@@ -48,6 +48,7 @@ namespace MutableIdeas.Web.Linq.Query.Test
 					Name = "George",
 					Page = 2,
 					TestItems = new[] { "Tes12t", "Test13", "Test23" },
+					Testing = false,
 					SubTest = new SubTestModel {
 						Index = 2,
 						Name = "Sub Test 2",
@@ -231,6 +232,23 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService.By("testing", "true", FilterType.Equal);
 			Expression<Func<TestModel, bool>> expression = _filterService.Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
+
+			_filterService.By("testing", "false", FilterType.Equal);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(3);
+		}
+
+		[TestMethod]
+		public void NullableTest()
+		{
+			_filterService.By("testingNullable", "5", FilterType.Equal);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
+
+			// this should find the other 3 items
+			_filterService.By("testingNullable", "5", FilterType.NotEqual);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(3);
 		}
     }
 }

@@ -13,6 +13,11 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				|| (itemType.GetTypeInfo().IsGenericType && itemType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 		}
 
+		public static bool IsNullable(this Type itemType)
+		{
+			return itemType.GetTypeInfo().IsGenericType && itemType.GetGenericTypeDefinition() == typeof(Nullable<>);
+		}
+
 		public static Type FirstGenericParameter(this Type itemType)
 		{
 			return itemType.IsArray ? itemType.GetElementType() : itemType.GenericTypeArguments.FirstOrDefault();
