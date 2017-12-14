@@ -18,6 +18,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		int _parameterIndex = 0;
 		FilterStatement _currentFilterStatement = null;
 		bool _isEnumerable = false;
+		bool _isNullable = false;
 
 		readonly ParameterExpression _pe;
 		readonly List<FilterStatement> _filterStatements;
@@ -89,12 +90,13 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			_filterStatements.Each(statement =>
 			{
 				_isEnumerable = false;
+				_isNullable = false;
 				_currentFilterStatement = statement;
 
 				properties = new List<MemberExpression>();
 				comparingExpression = ParsePropertyExpression(statement.PropertyName, statement.Value, filterEntityType, pe, properties.Add);
 
-				if (!_isEnumerable)
+				if (!_isEnumerable && !_isNullable)
 				{
 					ConstantExpression right = GetConstantExpression(statement.PropertyName, statement.Value);
 					comparingExpression = GetComparingExpression(comparingExpression, right, statement.Comparison);
@@ -187,8 +189,16 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 				leftExpression = Expression.Property(leftExpression, propertyInfo);
 
-				if (!propertyInfo.PropertyType.IsNumeric())
+				if (!propertyInfo.PropertyType.IsNumeric()
+					&& !propertyInfo.PropertyType.IsNullable()
+					&& propertyInfo.PropertyType != typeof(bool))
 					action(leftExpression as MemberExpression);
+
+				if (propertyInfo.PropertyType.IsNullable())
+				{
+					_isNullable = true;
+					leftExpression = GetNullableCheck(leftExpression as MemberExpression, _currentFilterStatement.Value);
+				}
 			}
 
 			if (!_propertyInfo.ContainsKey(_currentFilterStatement.PropertyName))
@@ -313,6 +323,29 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			});
 
 			return operatorExpression;
+		}
+
+		Expression GetNullableCheck(MemberExpression memberExpression, string value)
+		{
+			Type genericValue = memberExpression.Type.FirstGenericParameter();
+			string hasValue = "true";
+			FilterOperator filterOperator = FilterOperator.And;
+
+			if (_currentFilterStatement.Comparison == FilterType.NotEqual)
+			{
+				hasValue = "false";
+				filterOperator = FilterOperator.Or;
+			}
+
+			MemberExpression hasValueExpression = Expression.Property(memberExpression, "HasValue");
+			ConstantExpression boolValueExpression = GetConstantExpression(hasValue, typeof(bool));
+			Expression leftComparingExpression = GetComparingExpression(hasValueExpression, boolValueExpression, FilterType.Equal);
+
+			MemberExpression valuePropertyExpression = Expression.Property(memberExpression, "Value");
+			ConstantExpression valueExpression = GetConstantExpression(value, genericValue);
+			Expression rightComparingExpression = GetComparingExpression(valuePropertyExpression, valueExpression, _currentFilterStatement.Comparison);
+
+			return GetOperatorExpression(leftComparingExpression, rightComparingExpression, filterOperator);
 		}
 	}
 }
