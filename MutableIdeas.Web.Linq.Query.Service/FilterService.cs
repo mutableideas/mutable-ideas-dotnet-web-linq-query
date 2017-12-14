@@ -187,7 +187,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 				leftExpression = Expression.Property(leftExpression, propertyInfo);
 
-				if (!propertyInfo.PropertyType.IsNumeric())
+				if (!propertyInfo.PropertyType.IsNumeric() && propertyInfo.PropertyType != typeof(bool))
 					action(leftExpression as MemberExpression);
 			}
 

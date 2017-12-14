@@ -14,7 +14,9 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		public IEnumerable<string> TestStrings { get; set; }
 		public IEnumerable<SubTestModel> TestModels { get; set; }
 		public decimal Points { get; set; }
-		
+
+		public bool Testing { get; set; }
+		public int? TestingNullable { get; set; }	
 	}
 
 	public class SubTestModel

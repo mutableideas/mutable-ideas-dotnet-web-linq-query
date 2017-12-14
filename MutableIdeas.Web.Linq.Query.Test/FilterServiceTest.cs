@@ -39,7 +39,9 @@ namespace MutableIdeas.Web.Linq.Query.Test
 								new AnotherModel { Value = "Hootie Hoo!" }
 							}
 						}
-					}
+					},
+					Testing = true,
+					TestingNullable = 5
 				},
 				new TestModel {
 					LastName = "Castanza",
@@ -221,6 +223,14 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService.By("testmodels.name", "['Sub Test 5', 'Sub Test 3']", FilterType.In);
 			expression = _filterService.Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(2);
+		}
+
+		[TestMethod]
+		public void BooleanTest()
+		{
+			_filterService.By("testing", "true", FilterType.Equal);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
 		}
     }
 }
