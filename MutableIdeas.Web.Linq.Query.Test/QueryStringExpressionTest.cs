@@ -132,9 +132,32 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		[TestMethod]
 		public void TestNested()
 		{
+			IQueryable<TestModel> testModels = new TestModel[] {
+				new TestModel { LastName = "Castanza", Name = "George", Page = 0, Points = 3.2M, SubTest = new SubTestModel { Name = "Andrew" } },
+				new TestModel { LastName = "Yzerman", Name = "Steve", Page = 1, Points = 0.5M, SubTest = new SubTestModel { Name = "Paul" } },
+				new TestModel { LastName = "Federov", Name = "Sergei", Page = 2, Points = 3000.888M, SubTest = new SubTestModel { Name = "Steve" } }
+			}.AsQueryable();
+
 			string qStringFilter = "subtest.name eq 'Sub%20Test%201'";
 			Expression<Func<TestModel, bool>> expression = _expressionService.GetExpression(qStringFilter);
 			expression.Should().NotBeNull();
+
+			qStringFilter = "subtest.name asc";
+			_expressionService.Sort(qStringFilter, testModels).ToArray()[0].SubTest.Name.ShouldAllBeEquivalentTo("Andrew");
+
+			qStringFilter = "subtest.name desc";
+			_expressionService.Sort(qStringFilter, testModels).ToArray()[0].SubTest.Name.ShouldAllBeEquivalentTo("Steve");
+
+			qStringFilter = "subtest.name";
+			_expressionService.Sort(qStringFilter, testModels).ToArray()[0].SubTest.Name.ShouldAllBeEquivalentTo("Andrew");
+
+			Action action = () =>
+			{
+				qStringFilter = "subtest.name seomthing";
+				_expressionService.Sort(qStringFilter, testModels);
+			};
+
+			action.ShouldThrow<FormatException>();
 		}
 	}
 }
