@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using MutableIdeas.Web.Linq.Query.Service.Extensions;
@@ -13,9 +14,9 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		public void TestSort()
 		{
 			IQueryable<TestModel> testModels = new TestModel[] {
-				new TestModel { LastName = "Castanza", Name = "George", Page = 3 },
-				new TestModel { LastName = "Yzerman", Name = "Steve", Page = 2 },
-				new TestModel { LastName = "Federov", Name = "Sergei", Page = 1 }
+				new TestModel { LastName = "Castanza", Name = "George", Page = 3, SubTest = new SubTestModel { Name = "Paul" }, TestItems = new string[] { } },
+				new TestModel { LastName = "Yzerman", Name = "Steve", Page = 2, SubTest = new SubTestModel { Name = "Andrew" }, TestItems = new string[] { } },
+				new TestModel { LastName = "Federov", Name = "Sergei", Page = 1, SubTest = new SubTestModel { Name = "Zetterberg" }, TestItems = new string[] { } }
 			}.AsQueryable();
 
 			TestModel[] ordered = testModels.OrderBy("lastname", SortDirection.Ascending).ToArray();
@@ -32,6 +33,16 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 			ordered = testModels.OrderBy("Page", SortDirection.Descending).ToArray();
 			ordered[0].Page.ShouldBeEquivalentTo(3);
+
+			ordered = testModels.OrderBy("subtest.name", SortDirection.Ascending).ToArray();
+			ordered[0].Page.ShouldBeEquivalentTo(2);
+
+			Action act = () => {
+				testModels.OrderBy("testitems", SortDirection.Ascending).ToArray();
+			};
+
+			act.ShouldThrow<InvalidOperationException>()
+				.WithMessage("Cannot sort enumerable properties.");
 		}
     }
 }

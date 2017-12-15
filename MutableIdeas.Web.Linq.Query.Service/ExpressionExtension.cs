@@ -25,5 +25,22 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		{
 			return Expression.Call(left, _stringContainsMethod, right);
 		}
+
+		public static Expression GetPropertyExpression(ParameterExpression parameterExpression, string propertyName)
+		{
+			string[] properties = propertyName.ToLower().Split('.');
+			Expression leftExpression = parameterExpression;
+
+			properties.Each(property =>
+			{
+				PropertyInfo propertyInfo = leftExpression.Type.GetPropertyInfo(property);
+				if (propertyInfo.PropertyType.IsEnumerable())
+					throw new InvalidOperationException("Cannot sort enumerable properties.");
+
+				leftExpression = Expression.Property(leftExpression, propertyInfo);
+			});
+
+			return leftExpression;
+		}
     }
 }

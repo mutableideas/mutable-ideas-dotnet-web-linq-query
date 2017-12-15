@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 
 namespace MutableIdeas.Web.Linq.Query.Service.Extensions
@@ -13,14 +12,11 @@ namespace MutableIdeas.Web.Linq.Query.Service.Extensions
 			string command = direction == SortDirection.Descending ? "OrderByDescending" : "OrderBy";
 
 			Type type = typeof(T);
-			PropertyInfo property = type.GetRuntimeProperties()
-				.Where(p => p.Name.ToLower() == orderByProperty.Trim().ToLower())
-				.First();
-
+			
 			ParameterExpression parameter = Expression.Parameter(type, "p");
-			MemberExpression propertyAccess = Expression.MakeMemberAccess(parameter, property);
+			Expression propertyAccess = ExpressionExtension.GetPropertyExpression(parameter, orderByProperty);
 			Expression orderByExpression = Expression.Lambda(propertyAccess, parameter);
-			MethodCallExpression resultExpression = Expression.Call(typeof(Queryable), command, new Type[] { type, property.PropertyType },
+			MethodCallExpression resultExpression = Expression.Call(typeof(Queryable), command, new Type[] { type, propertyAccess.Type },
 										source.Expression, Expression.Quote(orderByExpression));
 
 			return source.Provider.CreateQuery<T>(resultExpression);
