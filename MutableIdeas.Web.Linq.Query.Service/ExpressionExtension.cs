@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -12,13 +13,13 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		public static ConstantExpression GetArrayConstantValue<V>(string value)
 		{
 			Type valueType = typeof(V);
-			V[] values = value.Replace("[", string.Empty)
+			List<V> values = value.Replace("[", string.Empty)
 				.Replace("]", string.Empty)
 				.Split(',')
 				.Select(p => (V)Convert.ChangeType(p.UnescapeUrlValue(), valueType))
-				.ToArray();
+				.ToList();
 
-			return Expression.Constant(values, typeof(V[]));
+			return Expression.Constant(values, typeof(List<V>));
 		}
 
 		public static Expression ContainsExpression(Expression left, Expression right)

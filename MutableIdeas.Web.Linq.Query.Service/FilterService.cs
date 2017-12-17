@@ -232,17 +232,10 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		Expression EnumerableContains(ConstantExpression constantExpression, MemberExpression memberExpression)
 		{
 			Type genericType = constantExpression.Type.FirstGenericParameter();
-			MethodInfo containsMethod = constantExpression.Type.GetContainsMethod();
-			ParameterExpression parameter = GetParameter(genericType);
-			Expression lambda = Expression.Lambda(GetComparingExpression(memberExpression, parameter, FilterType.Equal), parameter);
+			MethodInfo containsMethod = constantExpression.Type.GetRuntimeMethods()
+				.First(p => p.Name == "Contains");
 
-			return Expression.Call(
-				typeof(Enumerable),
-				"Any",
-				new[] { genericType },
-				constantExpression,
-				lambda
-			);
+			return Expression.Call(constantExpression, containsMethod, memberExpression);
 		}
 
 		Expression AnyExpression(Expression propertyExpression, IEnumerable<string> properties, string value, PropertyInfo propertyInfo)
