@@ -23,16 +23,6 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return itemType.IsArray ? itemType.GetElementType() : itemType.GenericTypeArguments.FirstOrDefault();
 		}
 
-		public static MethodInfo GetContainsMethod(this Type itemType)
-		{
-			Type genericItemType = itemType.FirstGenericParameter();
-			MethodInfo containsMethod = typeof(Enumerable).GetRuntimeMethods()
-				.First(p => p.Name == "Contains" && p.GetParameters().Count() == 2);
-			MethodInfo genericContains = containsMethod.MakeGenericMethod(itemType);
-
-			return genericContains;
-		}
-
 		public static bool IsNumeric(this Type itemType)
 		{
 			switch (Type.GetTypeCode(itemType))
