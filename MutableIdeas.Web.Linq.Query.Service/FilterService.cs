@@ -225,7 +225,10 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				return genericMethod.Invoke(null, new[] { value }) as ConstantExpression;
 			}
 
-			constantValue = Convert.ChangeType(value, valueType);
+			constantValue = valueType.IsEnum
+				? Enum.Parse(valueType, value)
+				: Convert.ChangeType(value, valueType);
+
 			return Expression.Constant(constantValue, valueType);
 		}
 

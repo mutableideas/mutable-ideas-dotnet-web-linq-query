@@ -4,6 +4,14 @@ using System.Text;
 
 namespace MutableIdeas.Web.Linq.Query.Test
 {
+
+	public enum TestEnum
+	{
+		Maybe = 0,
+		Yes = 1,
+		No = 2
+	}
+
 	public class TestModel
 	{
 		public string Name { get; set; }
@@ -16,7 +24,8 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		public decimal Points { get; set; }
 
 		public bool Testing { get; set; }
-		public int? TestingNullable { get; set; }	
+		public int? TestingNullable { get; set; }
+		public TestEnum TestStatus { get; set; }
 	}
 
 	public class SubTestModel

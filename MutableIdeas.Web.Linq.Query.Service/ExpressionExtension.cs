@@ -16,7 +16,11 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			List<V> values = value.Replace("[", string.Empty)
 				.Replace("]", string.Empty)
 				.Split(',')
-				.Select(p => (V)Convert.ChangeType(p.UnescapeUrlValue(), valueType))
+				.Select(p => {
+					return valueType.IsEnum
+						? (V)Enum.Parse(valueType, p)
+						: (V)Convert.ChangeType(p.UnescapeUrlValue(), valueType);
+				})
 				.ToList();
 
 			return Expression.Constant(values, typeof(List<V>));
