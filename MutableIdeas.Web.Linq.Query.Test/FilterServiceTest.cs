@@ -250,5 +250,33 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			expression = _filterService.Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(3);
 		}
-    }
+
+		[TestMethod]
+		public void TestEnum()
+		{
+			IQueryable<TestModel> testModels = new TestModel[] {
+				new TestModel { LastName = "Castanza", Name = "George", Page = 0, Points = 3.2M, SubTest = new SubTestModel { Name = "Andrew" }, TestStatus = Test.TestEnum.Maybe },
+				new TestModel { LastName = "Yzerman", Name = "Steve", Page = 1, Points = 0.5M, SubTest = new SubTestModel { Name = "Paul" }, TestStatus = Test.TestEnum.Yes },
+				new TestModel { LastName = "Federov", Name = "Sergei", Page = 2, Points = 3000.888M, SubTest = new SubTestModel { Name = "Steve" }, TestStatus = Test.TestEnum.No }
+			}.AsQueryable();
+
+			_filterService.By("teststatus", "0", FilterType.Equal);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			testModels.Where(expression).Count().ShouldBeEquivalentTo(1);
+
+			_filterService.By("teststatus", "[0,1]", FilterType.In);
+			expression = _filterService.Build();
+			testModels.Where(expression).Count().ShouldBeEquivalentTo(2);
+
+			_filterService.By("teststatus", "1", FilterType.NotEqual);
+			expression = _filterService.Build();
+			testModels.Where(expression).Count().ShouldBeEquivalentTo(2);
+
+			_filterService.By("teststatus", "'Maybe'", FilterType.Equal);
+			testModels.Where(_filterService.Build()).Count().ShouldBeEquivalentTo(1);
+
+			_filterService.By("teststatus", "['Maybe', 'No']", FilterType.In);
+			testModels.Where(_filterService.Build()).Count().ShouldBeEquivalentTo(2);
+		}
+	}
 }

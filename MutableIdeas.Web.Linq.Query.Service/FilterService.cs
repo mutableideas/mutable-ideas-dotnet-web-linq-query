@@ -26,6 +26,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		readonly MethodInfo arrayContainsMethod = typeof(IList).GetRuntimeMethod("Contains", new[] { typeof(object) });
 		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
 		readonly MethodInfo getArrayConstant = typeof(ExpressionExtension).GetRuntimeMethods().First(p => p.Name == "GetArrayConstantValue");
+		readonly MethodInfo getConstantValue = typeof(ExpressionExtension).GetRuntimeMethods().First(p => p.Name == "ConvertValue");
 
 		protected Dictionary<string, PropertyInfo> _propertyInfo;
 
@@ -217,7 +218,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		ConstantExpression GetConstantExpression(string value, Type valueType)
 		{
-			object constantValue;
+			object constantValue = value;
 
 			if (value != null && value.StartsWith("[") && value.EndsWith("]"))
 			{
@@ -225,7 +226,9 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				return genericMethod.Invoke(null, new[] { value }) as ConstantExpression;
 			}
 
-			constantValue = Convert.ChangeType(value, valueType);
+			if (value != null)
+				constantValue = getConstantValue.MakeGenericMethod(valueType).Invoke(null, new[] { value });
+
 			return Expression.Constant(constantValue, valueType);
 		}
 

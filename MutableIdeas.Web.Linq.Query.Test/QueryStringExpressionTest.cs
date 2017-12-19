@@ -159,5 +159,24 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 			action.ShouldThrow<FormatException>();
 		}
+
+		[TestMethod]
+		public void TestBooleanQueryString()
+		{
+			IQueryable<TestModel> testModels = new TestModel[] {
+				new TestModel { LastName = "Castanza", Name = "George", Page = 3, Testing = false },
+				new TestModel { LastName = "Yzerman", Name = "Steve", Page = 2, Testing = true },
+				new TestModel { LastName = "Federov", Name = "Sergei", Page = 1, Testing = false }
+			}.AsQueryable();
+
+
+			string qstringFilter = "testing eq true";
+			Expression<Func<TestModel, bool>> expression = _expressionService.GetExpression(qstringFilter);
+			expression.Should().NotBeNull();
+
+			qstringFilter = "testing eq false";
+			expression = _expressionService.GetExpression(qstringFilter);
+			expression.Should().NotBeNull();
+		}
 	}
 }
