@@ -271,6 +271,12 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService.By("teststatus", "1", FilterType.NotEqual);
 			expression = _filterService.Build();
 			testModels.Where(expression).Count().ShouldBeEquivalentTo(2);
+
+			_filterService.By("teststatus", "'Maybe'", FilterType.Equal);
+			testModels.Where(_filterService.Build()).Count().ShouldBeEquivalentTo(1);
+
+			_filterService.By("teststatus", "['Maybe', 'No']", FilterType.In);
+			testModels.Where(_filterService.Build()).Count().ShouldBeEquivalentTo(2);
 		}
 	}
 }
