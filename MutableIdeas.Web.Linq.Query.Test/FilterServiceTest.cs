@@ -89,7 +89,8 @@ namespace MutableIdeas.Web.Linq.Query.Test
 				new TestModel
 				{
 					LastName = "Anderson",
-					Name = "Cooper"
+					Name = "Cooper",
+					ApplyDate = new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc)
 				}
 			}.AsQueryable();
 		}
@@ -160,6 +161,10 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService.By("teststrings", "Org1", FilterType.Contains);
 			expression = _filterService.Build();
 			queryable.Where(expression).Count().Should().Be(1);
+
+			_filterService.By("subtest.orgtags", "org", FilterType.ContainsIgnoreCase);
+			expression = _filterService.Build();
+			queryable.Where(expression).Count().Should().Be(3);
 		}
 
 		[TestMethod]
@@ -277,6 +282,14 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 			_filterService.By("teststatus", "['Maybe', 'No']", FilterType.In);
 			testModels.Where(_filterService.Build()).Count().ShouldBeEquivalentTo(2);
+		}
+
+		[TestMethod]
+		public void DateCompare()
+		{
+			_filterService.By("applydate", "2017-12-31T00:00:00.000Z", FilterType.GreaterThanOrEqualTo);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
 		}
 	}
 }
