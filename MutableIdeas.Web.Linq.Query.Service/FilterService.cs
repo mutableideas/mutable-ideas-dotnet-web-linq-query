@@ -117,7 +117,9 @@ namespace MutableIdeas.Web.Linq.Query.Service
 					if (properties.Count() > 0)
 					{
 						Expression expression = NullCheckProperties(properties);
-						lastExpression = GetOperatorExpression(expression, lastExpression, FilterOperator.And);
+
+						if (expression != null)
+							lastExpression = GetOperatorExpression(expression, lastExpression, FilterOperator.And);
 					}
 				}
 			});
@@ -280,6 +282,9 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				objPropertyExpression
 			);
 
+			if (objPropertyExpression.Type.IsValueType)
+				return anyExpression;
+
 			Expression nullExpression = GetNotNullExpression(entityPropertyExpression);
 			return GetOperatorExpression(nullExpression, anyExpression, FilterOperator.And);
 		}
@@ -312,6 +317,9 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 			expressions.Each(exp =>
 			{
+				if (exp.Type.IsValueType)
+					return;
+
 				Expression notNull = GetNotNullExpression(exp);
 				operatorExpression = operatorExpression == null
 					? notNull

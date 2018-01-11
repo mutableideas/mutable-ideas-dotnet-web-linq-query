@@ -26,6 +26,8 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		public bool Testing { get; set; }
 		public int? TestingNullable { get; set; }
 		public TestEnum TestStatus { get; set; }
+
+		public DateTime ApplyDate { get; set; }
 	}
 
 	public class SubTestModel
