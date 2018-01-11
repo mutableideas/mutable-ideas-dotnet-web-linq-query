@@ -10,6 +10,12 @@ namespace MutableIdeas.Web.Linq.Query.Domain.Enums
         GreaterThanOrEqualTo,
         Contains,
 		ContainsIgnoreCase,
-		In
+		In,
+        LenEqual,
+        LenGreaterThan,
+        LenGreaterThanOrEqualTo,
+        LenLessThan,
+        LenLessThanOrEqualTo,
+        LenNotEqual
     }
 }

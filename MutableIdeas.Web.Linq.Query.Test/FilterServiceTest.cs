@@ -291,5 +291,18 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			Expression<Func<TestModel, bool>> expression = _filterService.Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
 		}
+
+		[TestMethod]
+		public void TestEnumerableCount()
+		{
+			string[] values = {
+				"subtest.orgtags leneq 2"
+			};
+
+			_filterService.By("subtest.orgtags", "2", FilterType.LenEqual);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			expression.Should().NotBeNull();
+			queryable.Where(expression).Count().ShouldBeEquivalentTo(3);
+		}
 	}
 }

@@ -20,8 +20,8 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		public QueryStringExpressionService(IFilterService<T> filterService)
         {
-            _pattern = new Regex(@"(?<entity>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte|ct|ctic|in){1}\s+(?<value>\[(('[\w+|\s+%-]+\'|\d*\.?\d*)\s*,?)*\]|true|false|\'[\w+|\s+%-]+\'|\d*\.?\d*)(?<operator>\s\w+\s)?");
-			_sortPattern = new Regex(@"^(?<propName>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}(\s+(?<order>desc|asc))?$");
+            _pattern = new Regex(@"(?<entity>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte|ct|ctic|in|leneq|lengt|lengte|lenlt|lenlte|lenne){1}\s+(?<value>\[(('[\w+|\s+%-]+\'|\d*\.?\d*)\s*,?)*\]|true|false|\'[\w+|\s+%-]+\'|\d*\.?\d*)(?<operator>\s\w+\s)?", RegexOptions.Compiled);
+			_sortPattern = new Regex(@"^(?<propName>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}(\s+(?<order>desc|asc))?$", RegexOptions.Compiled);
 
 			_propertyNames = typeof(T).GetRuntimeProperties().ToDictionary(p => p.Name, p => p);
 			_filterService = filterService;
@@ -113,6 +113,18 @@ namespace MutableIdeas.Web.Linq.Query.Service
 					return FilterType.ContainsIgnoreCase;
 				case "in":
 					return FilterType.In;
+				case "leneq":
+					return FilterType.LenEqual;
+				case "lengt":
+					return FilterType.LenGreaterThan;
+				case "lengte":
+					return FilterType.LenGreaterThanOrEqualTo;
+				case "lenlt":
+					return FilterType.LenLessThan;
+				case "lenlte":
+					return FilterType.LenLessThanOrEqualTo;
+				case "lenne":
+					return FilterType.LenNotEqual;
             }
 
             throw new FormatException($"{comparison} is not a supported comparison type.");

@@ -14,6 +14,8 @@ namespace MutableIdeas.Web.Linq.Query.Test
 	public class QueryStringExpressionTest
 	{
 		QueryStringExpressionService<TestModel> _expressionService;
+		Expression<Func<TestModel, bool>> _expression;
+		string _qString;
 
 		public QueryStringExpressionTest()
 		{
@@ -177,6 +179,24 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			qstringFilter = "testing eq false";
 			expression = _expressionService.GetExpression(qstringFilter);
 			expression.Should().NotBeNull();
+		}
+
+		[TestMethod]
+		public void TestLengthQueryString()
+		{
+			string[] expressions = {
+				"prop leneq 4", // length == 4
+				"prop lengt 4", // length > 4
+				"prop lengte 4", // length >= 4
+				"prop lenlt 4", // length < 4,
+				"prop lenlte 4", // length <= 4
+				"prop lenne 4" // length != 4
+			};
+
+			foreach (string qString in expressions)
+			{
+				_expressionService.GetExpression(qString).Should().NotBeNull();
+			}
 		}
 	}
 }
