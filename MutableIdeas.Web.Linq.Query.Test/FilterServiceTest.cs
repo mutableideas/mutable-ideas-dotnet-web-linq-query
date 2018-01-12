@@ -7,6 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MutableIdeas.Web.Linq.Query.Service;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 
+using static MutableIdeas.Web.Linq.Query.Domain.Enums.FilterType;
+
 namespace MutableIdeas.Web.Linq.Query.Test
 {
 	[TestClass]
@@ -295,14 +297,35 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		[TestMethod]
 		public void TestEnumerableCount()
 		{
-			string[] values = {
-				"subtest.orgtags leneq 2"
+			const string orgTags = "subtest.orgtags";
+
+			Expression<Func<TestModel, bool>> expression;
+			Tuple<string, FilterType, string, int>[] values = {
+				Tuple.Create(orgTags, LenEqual,  "2", 3),
+				Tuple.Create(orgTags, LenEqual, "3", 0),
+				Tuple.Create(orgTags, LenGreaterThan, "1", 3),
+				Tuple.Create(orgTags, LenGreaterThan, "2", 0),
+				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "2", 3),
+				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "3", 0),
+				Tuple.Create(orgTags, LenLessThan, "3", 3),
+				Tuple.Create(orgTags, LenLessThan, "2", 0),
+				Tuple.Create(orgTags, LenLessThanOrEqualTo, "2", 3),
+				Tuple.Create(orgTags, LenLessThanOrEqualTo, "1", 0),
+				// might be an issue since there's a null check and won't be added in the count, what should we expect
+				// nulls are ommitted in this case or should they be included?
+				Tuple.Create(orgTags, LenNotEqual, "2", 1), 
+				Tuple.Create(orgTags, LenNotEqual, "3", 3)
+
+				// string comparisons
 			};
 
-			_filterService.By("subtest.orgtags", "2", FilterType.LenEqual);
-			Expression<Func<TestModel, bool>> expression = _filterService.Build();
-			expression.Should().NotBeNull();
-			queryable.Where(expression).Count().ShouldBeEquivalentTo(3);
+			foreach (Tuple<string, FilterType, string, int> tuple in values)
+			{
+				_filterService.By(tuple.Item1, tuple.Item3, tuple.Item2);
+				expression = _filterService.Build();
+				expression.Should().NotBeNull();
+				queryable.Where(expression).Count().ShouldBeEquivalentTo(tuple.Item4);
+			}
 		}
 	}
 }
