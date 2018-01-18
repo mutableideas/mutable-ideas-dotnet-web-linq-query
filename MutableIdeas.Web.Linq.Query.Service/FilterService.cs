@@ -132,16 +132,17 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				case FilterType.LenLessThan:
 				case FilterType.LenLessThanOrEqualTo:
 				case FilterType.LenNotEqual:
-					return GetLengthComparingExpression(left, right as ConstantExpression, filterType);
+					return GetLengthComparingExpression(left as MemberExpression, right as ConstantExpression, filterType);
 			}
 
             throw new ArgumentException($"The filter type {filterType} does not exist.");
         }
 
-		Expression GetLengthComparingExpression(Expression left, ConstantExpression right, FilterType filterType)
+		Expression GetLengthComparingExpression(MemberExpression left, ConstantExpression right, FilterType filterType)
 		{
 			FilterType comparingFilterType;
-			
+			Expression lengthExpression = GetLengthExpression(left);
+
 			switch (filterType)
 			{
 				case FilterType.LenGreaterThan:
@@ -164,7 +165,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 					break;
 			}
 
-			return GetComparingExpression(left, right, comparingFilterType);
+			return GetComparingExpression(lengthExpression, right, comparingFilterType);
 		}
 
         Expression GetOperatorExpression(Expression left, Expression right, FilterOperator filterOperator)
@@ -178,6 +179,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			Expression leftExpression = null;
 			MemberExpression propertyExpression = null;
 			bool isLessThanComparison = LenIncludeNullComparisons(comparison);
+			bool isLenComparison = IsLengthComparison(comparison);
 
 			Func<Expression, Expression, Expression> operatorExpression = (left, right) =>
 			{
@@ -208,13 +210,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				}
 			}
 
-			// this is starting to feel ugly
 			Expression comparingLeftExpression = propertyExpression == null ? pe as Expression : propertyExpression;
-			ConstantExpression constant = GetConstantExpression(value, lastType);
+			ConstantExpression constant = GetConstantExpression(value, !isLenComparison ? lastType : typeof(int));
 			Expression comparingExpression = GetComparingExpression(comparingLeftExpression, constant, comparison);
 
 			if (leftExpression != null)
-				comparingExpression = GetOperatorExpression(leftExpression, comparingExpression, FilterOperator.And);
+				comparingExpression = operatorExpression(leftExpression, comparingExpression);
 
 			return Expression.Lambda(comparingExpression, pe).Body;
 		}
@@ -223,9 +224,8 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		{
 			if (IsLengthComparison(comparison))
 			{
-				Expression lengthExpression = GetLengthExpression(expression as MemberExpression);
 				ConstantExpression constant = GetConstantExpression(value, typeof(int));
-				Expression binaryExpression = GetComparingExpression(lengthExpression, constant, comparison);
+				Expression binaryExpression = GetComparingExpression(expression, constant, comparison);
 
 				if (LenIncludeNullComparisons(comparison))
 				{

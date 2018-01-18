@@ -325,5 +325,33 @@ namespace MutableIdeas.Web.Linq.Query.Test
 				queryable.Where(expression).Count().ShouldBeEquivalentTo(tuple.Item4);
 			}
 		}
+
+		[TestMethod]
+		public void TestStringLengths()
+		{
+			const string orgTags = "name";
+
+			// string length comparisons
+			Expression<Func<TestModel, bool>> expression;
+			Tuple<string, FilterType, string, int>[] values = {
+				Tuple.Create(orgTags, LenEqual,  "4", 1),
+				Tuple.Create(orgTags, LenEqual, "5", 1),
+				Tuple.Create(orgTags, LenGreaterThan, "4", 3),
+				Tuple.Create(orgTags, LenGreaterThan, "6", 0),
+				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "6", 2),
+				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "5", 3),
+				Tuple.Create(orgTags, LenLessThan, "5", 1),
+				Tuple.Create(orgTags, LenLessThanOrEqualTo, "5", 2),
+				Tuple.Create(orgTags, LenNotEqual, "6", 2)
+			};
+
+			foreach (Tuple<string, FilterType, string, int> tuple in values)
+			{
+				_filterService.By(tuple.Item1, tuple.Item3, tuple.Item2);
+				expression = _filterService.Build();
+				expression.Should().NotBeNull();
+				queryable.Where(expression).Count().ShouldBeEquivalentTo(tuple.Item4);
+			}
+		}
 	}
 }
