@@ -1,13 +1,13 @@
-﻿using MutableIdeas.Web.Linq.Query.Domain.Services;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using MutableIdeas.Web.Linq.Query.Domain.Models;
 using System.Reflection;
+
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
+using MutableIdeas.Web.Linq.Query.Domain.Models;
 
 namespace MutableIdeas.Web.Linq.Query.Service
 {
-	public class PropertyParserSevice : IPropertyParserService
+	internal class PropertyParserService
 	{
 		public IEnumerable<FilteredProperty> GetFilterProperties<T>(string properties) where T : class
 		{

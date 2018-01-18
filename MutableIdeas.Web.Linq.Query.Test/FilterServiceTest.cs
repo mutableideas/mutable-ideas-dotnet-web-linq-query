@@ -19,7 +19,7 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 		public FilterServiceTest()
 		{
-			_filterService = new FilterService<TestModel>(new PropertyParserSevice());
+			_filterService = new FilterService<TestModel>();
 
 			queryable = new[] {
 				new TestModel {  LastName = "Mead",

@@ -19,7 +19,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		FilterStatement<T> _currentFilterStatement = null;
 		
 		readonly List<FilterStatement<T>> _filterStatements;
-		readonly IPropertyParserService _propertyParserService;
+		readonly PropertyParserService _propertyParserService;
 
 		readonly MethodInfo arrayContainsMethod = typeof(IList).GetRuntimeMethod("Contains", new[] { typeof(object) });
 		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
@@ -28,12 +28,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		protected Dictionary<string, PropertyInfo> _propertyInfo;
 
-		public FilterService(IPropertyParserService propertyParserService)
+		public FilterService()
 		{
 			_filterStatements = new List<FilterStatement<T>>();
 			_propertyInfo = new Dictionary<string, PropertyInfo>();
 
-			_propertyParserService = propertyParserService;
+			_propertyParserService = new PropertyParserService();
 		}
 
 		public Expression<Func<T, bool>> Build()
