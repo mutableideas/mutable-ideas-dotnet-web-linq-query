@@ -7,6 +7,7 @@ namespace MutableIdeas.Web.Linq.Query.Domain.Models
     {
 		public FilterPropertyInfo FilterPropertyInfo { get; set; }
 		public string PropertyName { get; set; }
+		public string PropertyKey { get; set; }
 		public Type PropertyType { get; set; }
     }
 }

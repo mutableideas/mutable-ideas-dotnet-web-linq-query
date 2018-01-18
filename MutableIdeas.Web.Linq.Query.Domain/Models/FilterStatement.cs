@@ -1,5 +1,6 @@
-﻿using MutableIdeas.Web.Linq.Query.Domain.Enums;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
+using MutableIdeas.Web.Linq.Query.Domain.Enums;
 
 namespace MutableIdeas.Web.Linq.Query.Domain.Models
 {
@@ -10,11 +11,8 @@ namespace MutableIdeas.Web.Linq.Query.Domain.Models
 		public string Value { get; set; }
 		public FilterOperator? Operator { get; set; }
 		public FilterType Comparison { get; set; }
-		public ICollection<FilteredProperty> FilteredProperties { get; set; }
-
-		public FilteredProperty FilteredProperty
-		{
-			
-		}
+		public bool IsLessThanComparison { get; set; }
+		public bool IsLengthComparison { get; set; }
+		public IEnumerable<FilteredProperty> FilteredProperties { get; set; }
 	}
 }

@@ -19,7 +19,7 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 		public FilterServiceTest()
 		{
-			_filterService = new FilterService<TestModel>();
+			_filterService = new FilterService<TestModel>(new PropertyParserSevice());
 
 			queryable = new[] {
 				new TestModel {  LastName = "Mead",
@@ -307,14 +307,12 @@ namespace MutableIdeas.Web.Linq.Query.Test
 				Tuple.Create(orgTags, LenGreaterThan, "2", 0),
 				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "2", 3),
 				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "3", 0),
-				Tuple.Create(orgTags, LenLessThan, "3", 3),
-				Tuple.Create(orgTags, LenLessThan, "2", 0),
-				Tuple.Create(orgTags, LenLessThanOrEqualTo, "2", 3),
-				Tuple.Create(orgTags, LenLessThanOrEqualTo, "1", 0),
-				// might be an issue since there's a null check and won't be added in the count, what should we expect
-				// nulls are ommitted in this case or should they be included?
+				Tuple.Create(orgTags, LenLessThan, "3", 4),
+				Tuple.Create(orgTags, LenLessThan, "2", 1),
+				Tuple.Create(orgTags, LenLessThanOrEqualTo, "2", 4),
+				Tuple.Create(orgTags, LenLessThanOrEqualTo, "1", 1),
 				Tuple.Create(orgTags, LenNotEqual, "2", 1), 
-				Tuple.Create(orgTags, LenNotEqual, "3", 3)
+				Tuple.Create(orgTags, LenNotEqual, "3", 4)
 
 				// string comparisons
 			};

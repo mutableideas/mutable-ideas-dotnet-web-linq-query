@@ -14,16 +14,21 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			string[] propertyValues = properties.ToLower().Split('.');
 			Type itemType = typeof(T);
 			var filteredProperties = new List<FilteredProperty>();
-			
+			var propertyKeys = new List<string>();
+
 			foreach (string property in propertyValues)
 			{
+				// property info may be wrong for nullables
 				PropertyInfo propInfo = itemType.GetPropertyInfo(property);
 
 				if (propInfo == null)
 					throw new ArgumentNullException($"'{property}' in '{properties}' is not a valid property on type {itemType.Name}");
 
+				propertyKeys.Add(property);
+
 				filteredProperties.Add(new FilteredProperty
 				{
+					PropertyKey = string.Join(".", propertyKeys),
 					FilterPropertyInfo = GetFilteredPropertyInfo(propInfo.PropertyType),
 					PropertyName = propInfo.Name,
 					PropertyType = propInfo.PropertyType
@@ -37,14 +42,14 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		FilterPropertyInfo GetFilteredPropertyInfo(Type itemType)
 		{
-			if (itemType.IsValueType)
-				return FilterPropertyInfo.ValueType;
+			if (itemType.IsNullable())
+				return FilterPropertyInfo.Nullable;
 
 			if (itemType.IsEnumerable())
 				return FilterPropertyInfo.Enumerable;
 
-			if (itemType.IsGenericType)
-				return FilterPropertyInfo.Generic;
+			if (itemType.IsValueType)
+				return FilterPropertyInfo.ValueType;
 
 			return FilterPropertyInfo.ReferenceType;
 		}

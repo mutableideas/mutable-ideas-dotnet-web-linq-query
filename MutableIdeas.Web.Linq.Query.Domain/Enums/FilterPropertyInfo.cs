@@ -5,6 +5,6 @@
 		ReferenceType,
 		ValueType,
 		Enumerable,
-		Generic
+		Nullable
     }
 }

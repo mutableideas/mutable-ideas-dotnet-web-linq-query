@@ -25,7 +25,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		public static PropertyInfo GetPropertyInfo(this Type propertyType, string name)
 		{
-			if (propertyType.HasElementType)
+			if (propertyType.HasElementType || propertyType.IsEnumerable())
 				propertyType = propertyType.FirstGenericParameter();
 
 			return propertyType.GetRuntimeProperties().FirstOrDefault(p => p.Name.ToLower() == name.ToLower());
