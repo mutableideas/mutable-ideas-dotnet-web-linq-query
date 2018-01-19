@@ -16,8 +16,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 	{
 		FilterOperator? _operator;
 		int _parameterIndex = 0;
-		FilterStatement<T> _currentFilterStatement = null;
-		
+
 		readonly List<FilterStatement<T>> _filterStatements;
 		readonly PropertyParserService _propertyParserService;
 
@@ -59,9 +58,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				Operator = _operator,
 				PropertyName = propertyName.ToLower(),
 				Value = value,
-				FilteredProperties = _propertyParserService.GetFilterProperties<T>(propertyName.ToLower()),
-				IsLengthComparison = IsLengthComparison(filterType),
-				IsLessThanComparison = LenIncludeNullComparisons(filterType)
+				FilteredProperties = _propertyParserService.GetFilterProperties<T>(propertyName.ToLower())
 			});
 		}
 
@@ -237,16 +234,6 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			}
 
 			return AnyExpression(expression, filterProperties, comparison, value);
-		}
-
-		ConstantExpression GetConstantExpression(string property, string value)
-		{
-			bool isLengthComparison = IsLengthComparison(_currentFilterStatement.Comparison);
-
-			Type propType = _propertyInfo[property.ToLower()].PropertyType;
-			Type valueType = isLengthComparison ? typeof(int) : propType.FirstGenericParameter() ?? propType;
-
-			return GetConstantExpression(value, valueType);
 		}
 
 		ConstantExpression GetConstantExpression(string value, Type valueType)
