@@ -7,6 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MutableIdeas.Web.Linq.Query.Service;
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 
+using static MutableIdeas.Web.Linq.Query.Domain.Enums.FilterType;
+
 namespace MutableIdeas.Web.Linq.Query.Test
 {
 	[TestClass]
@@ -290,6 +292,66 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			_filterService.By("applydate", "2017-12-31T00:00:00.000Z", FilterType.GreaterThanOrEqualTo);
 			Expression<Func<TestModel, bool>> expression = _filterService.Build();
 			queryable.Where(expression).Count().ShouldBeEquivalentTo(1);
+		}
+
+		[TestMethod]
+		public void TestEnumerableCount()
+		{
+			const string orgTags = "subtest.orgtags";
+
+			Expression<Func<TestModel, bool>> expression;
+			Tuple<string, FilterType, string, int>[] values = {
+				Tuple.Create(orgTags, LenEqual,  "2", 3),
+				Tuple.Create(orgTags, LenEqual, "3", 0),
+				Tuple.Create(orgTags, LenGreaterThan, "1", 3),
+				Tuple.Create(orgTags, LenGreaterThan, "2", 0),
+				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "2", 3),
+				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "3", 0),
+				Tuple.Create(orgTags, LenLessThan, "3", 4),
+				Tuple.Create(orgTags, LenLessThan, "2", 1),
+				Tuple.Create(orgTags, LenLessThanOrEqualTo, "2", 4),
+				Tuple.Create(orgTags, LenLessThanOrEqualTo, "1", 1),
+				Tuple.Create(orgTags, LenNotEqual, "2", 1), 
+				Tuple.Create(orgTags, LenNotEqual, "3", 4)
+
+				// string comparisons
+			};
+
+			foreach (Tuple<string, FilterType, string, int> tuple in values)
+			{
+				_filterService.By(tuple.Item1, tuple.Item3, tuple.Item2);
+				expression = _filterService.Build();
+				expression.Should().NotBeNull();
+				queryable.Where(expression).Count().ShouldBeEquivalentTo(tuple.Item4);
+			}
+		}
+
+		[TestMethod]
+		public void TestStringLengths()
+		{
+			const string orgTags = "name";
+
+			// string length comparisons
+			Expression<Func<TestModel, bool>> expression;
+			Tuple<string, FilterType, string, int>[] values = {
+				Tuple.Create(orgTags, LenEqual,  "4", 1),
+				Tuple.Create(orgTags, LenEqual, "5", 1),
+				Tuple.Create(orgTags, LenGreaterThan, "4", 3),
+				Tuple.Create(orgTags, LenGreaterThan, "6", 0),
+				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "6", 2),
+				Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "5", 3),
+				Tuple.Create(orgTags, LenLessThan, "5", 1),
+				Tuple.Create(orgTags, LenLessThanOrEqualTo, "5", 2),
+				Tuple.Create(orgTags, LenNotEqual, "6", 2)
+			};
+
+			foreach (Tuple<string, FilterType, string, int> tuple in values)
+			{
+				_filterService.By(tuple.Item1, tuple.Item3, tuple.Item2);
+				expression = _filterService.Build();
+				expression.Should().NotBeNull();
+				queryable.Where(expression).Count().ShouldBeEquivalentTo(tuple.Item4);
+			}
 		}
 	}
 }
