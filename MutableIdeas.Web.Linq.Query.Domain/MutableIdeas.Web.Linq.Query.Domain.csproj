@@ -14,7 +14,7 @@
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <Authors>Paul Mead</Authors>
     <Company>Webit Flow LLC</Company>
-    <PackageReleaseNotes>Added net46 framework for compatibility</PackageReleaseNotes>
+    <PackageReleaseNotes>Added features for FilterProperties</PackageReleaseNotes>
     <Description />
   </PropertyGroup>
 
