@@ -9,8 +9,12 @@ namespace MutableIdeas.Web.Linq.Query.Service
     {
 		public static bool IsEnumerable(this Type itemType)
 		{
-			return itemType.IsArray
-				|| (itemType.GetTypeInfo().IsGenericType && itemType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            Type genericEnumerable = typeof(IEnumerable<>);
+
+            return itemType != typeof(string)
+                && (itemType.IsArray
+                || (itemType.GetTypeInfo().IsGenericType && itemType.GetGenericTypeDefinition() == genericEnumerable)
+                || itemType.GetInterfaces().Any(p => p.GetTypeInfo().IsGenericType && p.GetGenericTypeDefinition() == genericEnumerable));
 		}
 
 		public static bool IsNullable(this Type itemType)

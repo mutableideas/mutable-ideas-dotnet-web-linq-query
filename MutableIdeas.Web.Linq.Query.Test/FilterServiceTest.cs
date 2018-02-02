@@ -21,30 +21,34 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		{
 			_filterService = new FilterService<TestModel>();
 
-			queryable = new[] {
-				new TestModel {  LastName = "Mead",
-					Name = "Paul",
-					Page = 1,
-					TestItems = new[] { "Test", "Test1", "Test2" },
-					SubTest = new SubTestModel {
-						Index = 1,
-						Name = "Sub Test 1",
-						OrgTags = new[] { "OrgTag1", "OrgTag12" }
-					},
-					TestStrings = new[] { "Org1", "OrgTag12" },
-					TestModels = new[] {
-						new SubTestModel {
-							Name = "Sub Test 1",
-							Model = new AnotherModel { Value = "Howdy!1" },
-							Models = new[]
-							{
-								new AnotherModel { Value = "Hootie Hoo!" }
-							}
-						}
-					},
-					Testing = true,
-					TestingNullable = 5
-				},
+            queryable = new[] {
+                new TestModel {  LastName = "Mead",
+                    Name = "Paul",
+                    Page = 1,
+                    TestItems = new[] { "Test", "Test1", "Test2" },
+                    SubTest = new SubTestModel {
+                        Index = 1,
+                        Name = "Sub Test 1",
+                        OrgTags = new[] { "OrgTag1", "OrgTag12" }
+                    },
+                    TestStrings = new[] { "Org1", "OrgTag12" },
+                    TestModels = new[] {
+                        new SubTestModel {
+                            Name = "Sub Test 1",
+                            Model = new AnotherModel { Value = "Howdy!1" },
+                            Models = new[]
+                            {
+                                new AnotherModel { Value = "Hootie Hoo!" }
+                            }
+                        }
+                    },
+                    Testing = true,
+                    TestingNullable = 5,
+                    TestModelCol = new List<SubTestModel> {
+                        new SubTestModel()
+                    },
+                    TestModelList = new List<SubTestModel>()
+                },
 				new TestModel {
 					LastName = "Castanza",
 					Name = "George",
@@ -65,8 +69,12 @@ namespace MutableIdeas.Web.Linq.Query.Test
 								new AnotherModel { Value = "Hootie Hoo!" }
 							}
 						}
-					}
-				},
+					},
+                    TestModelCol = new List<SubTestModel> {
+                        new SubTestModel()
+                    },
+                    TestModelList = new List<SubTestModel>()
+                },
 				new TestModel {
 					LastName = "Collins",
 					Name = "Brian",
@@ -86,14 +94,22 @@ namespace MutableIdeas.Web.Linq.Query.Test
 								new AnotherModel { Value = "Hootie Hoo!" }
 							}
 						}
-					}
-				},
+					},
+                    TestModelCol = new List<SubTestModel> {
+                        new SubTestModel()
+                    },
+                    TestModelList = new List<SubTestModel>()
+                },
 				new TestModel
 				{
 					LastName = "Anderson",
 					Name = "Cooper",
-					ApplyDate = new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-				}
+					ApplyDate = new DateTime(2018, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    TestModelCol = new List<SubTestModel> {
+                        new SubTestModel()
+                    },
+                    TestModelList = new List<SubTestModel>()
+                }
 			}.AsQueryable();
 		}
 
@@ -312,9 +328,9 @@ namespace MutableIdeas.Web.Linq.Query.Test
 				Tuple.Create(orgTags, LenLessThanOrEqualTo, "2", 4),
 				Tuple.Create(orgTags, LenLessThanOrEqualTo, "1", 1),
 				Tuple.Create(orgTags, LenNotEqual, "2", 1), 
-				Tuple.Create(orgTags, LenNotEqual, "3", 4)
-
-				// string comparisons
+				Tuple.Create(orgTags, LenNotEqual, "3", 4),
+                Tuple.Create("testModelCol", LenEqual, "1", 4),
+                Tuple.Create("testModelList", LenEqual, "0", 4)
 			};
 
 			foreach (Tuple<string, FilterType, string, int> tuple in values)
