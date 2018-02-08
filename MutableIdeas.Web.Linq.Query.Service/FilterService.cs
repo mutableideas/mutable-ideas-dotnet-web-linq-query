@@ -24,9 +24,6 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		readonly MethodInfo stringToLowerMethod = typeof(string).GetRuntimeMethod("ToLower", new Type[0]);
 		readonly MethodInfo getArrayConstant = typeof(ExpressionExtension).GetRuntimeMethods().First(p => p.Name == "GetArrayConstantValue");
 		readonly MethodInfo getConstantValue = typeof(ExpressionExtension).GetRuntimeMethods().First(p => p.Name == "ConvertValue");
-        readonly MethodInfo genericLamba = typeof(Expression).GetRuntimeMethods().First(p => p.Name == "Lambda"
-            && p.IsGenericMethod
-            && p.GetParameters().Count() == 2);
 
         protected Dictionary<string, PropertyInfo> _propertyInfo;
 
@@ -317,11 +314,19 @@ namespace MutableIdeas.Web.Linq.Query.Service
                 FilteredProperty filteredProperty = filteredProperties.Current;
                 Type itemType = selectManyExpression.Type.GenericParameter();
 
+                // parameter
                 ParameterExpression parameter = GetParameter(itemType);
+
+                // parameter.PropertyName
                 MemberExpression propertyExpression = Expression.Property(parameter, filteredProperty.PropertyName);
+
+                // parameter => parameter.Propertyname != null
                 LambdaExpression notNullExpression = Expression.Lambda(GetNotNullExpression(propertyExpression), parameter);
+
+                // Where(parameter => parameter.PropertyName != null)
                 selectManyExpression = WhereExpression(selectManyExpression, notNullExpression);
 
+                // Where(parameter => parameter.PropertyName != null).SelectMany(parameter => parameter.PropertyName)
                 selectManyExpression = Expression.Call(
                     typeof(Enumerable),
                     "SelectMany",
@@ -332,27 +337,6 @@ namespace MutableIdeas.Web.Linq.Query.Service
             }
 
             return selectManyExpression;
-
-            /*FilteredProperty currentProperty = filteredProperties.Current;
-
-            if (!filteredProperties.MoveNext())
-                return Expression.Property(pe, currentProperty.PropertyName);
-
-            Type itemType = currentProperty.FilterPropertyInfo == FilterPropertyInfo.Enumerable
-                ? currentProperty.PropertyType.FirstGenericParameter()
-                : currentProperty.PropertyType;
-
-            ParameterExpression parameter = GetParameter(itemType);
-            Expression selectManyExpression = SelectMany(parameter, filteredProperties);
-            LambdaExpression selectManyLambda = Expression.Lambda(selectManyExpression, parameter);
-
-            return Expression.Call(
-                typeof(Enumerable),
-                "SelectMany",
-                new[] { itemType, selectManyLambda.Body.Type.GenericParameter() },
-                whereLambda,
-                selectManyLambda
-            );*/
         }
 
         Expression AnyExpression(Expression propertyExpression, IEnumerator<FilteredProperty> filteredProperties, FilterType filterType, string value)
