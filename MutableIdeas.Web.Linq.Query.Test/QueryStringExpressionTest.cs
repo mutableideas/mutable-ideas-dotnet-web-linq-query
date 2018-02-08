@@ -14,8 +14,6 @@ namespace MutableIdeas.Web.Linq.Query.Test
 	public class QueryStringExpressionTest
 	{
 		QueryStringExpressionService<TestModel> _expressionService;
-		Expression<Func<TestModel, bool>> _expression;
-		string _qString;
 
 		public QueryStringExpressionTest()
 		{
