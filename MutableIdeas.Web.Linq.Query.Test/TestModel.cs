@@ -44,5 +44,6 @@ namespace MutableIdeas.Web.Linq.Query.Test
 	public class AnotherModel
 	{
 		public string Value { get; set; }
+        public IEnumerable<string> Values { get; set; }
 	}
 }

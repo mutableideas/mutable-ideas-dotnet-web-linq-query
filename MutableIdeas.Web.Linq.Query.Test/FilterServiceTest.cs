@@ -21,6 +21,10 @@ namespace MutableIdeas.Web.Linq.Query.Test
 		{
 			_filterService = new FilterService<TestModel>();
 
+            AnotherModel staticModel = new AnotherModel {
+                Value = "1234"
+            };
+
             queryable = new[] {
                 new TestModel {  LastName = "Mead",
                     Name = "Paul",
@@ -38,7 +42,8 @@ namespace MutableIdeas.Web.Linq.Query.Test
                             Model = new AnotherModel { Value = "Howdy!1" },
                             Models = new[]
                             {
-                                new AnotherModel { Value = "Hootie Hoo!" }
+                                new AnotherModel { Value = "Hootie Hoo!" },
+                                staticModel
                             }
                         }
                     },
@@ -66,7 +71,10 @@ namespace MutableIdeas.Web.Linq.Query.Test
 							Model = new AnotherModel { Value = "Howdy!2" },
 							Models = new[]
 							{
-								new AnotherModel { Value = "Hootie Hoo!" }
+								new AnotherModel {
+                                    Value = "Hootie Hoo!",
+                                    Values = new[] { "Testing", "1234" }
+                                }
 							}
 						}
 					},
@@ -91,7 +99,8 @@ namespace MutableIdeas.Web.Linq.Query.Test
 							Model = new AnotherModel { Value = "Howdy!" },
 							Models = new[]
 							{
-								new AnotherModel { Value = "Hootie Hoo!" }
+								new AnotherModel { Value = "Hootie Hoo!" },
+                                staticModel
 							}
 						}
 					},
@@ -369,5 +378,33 @@ namespace MutableIdeas.Web.Linq.Query.Test
 				queryable.Where(expression).Count().ShouldBeEquivalentTo(tuple.Item4);
 			}
 		}
+
+        [TestMethod]
+        public void NestedEnumerableCount()
+        {
+            // needs to do something like this => enumberableProperty.SelectMany(p => p.nestedEnumerable).Distinct().Count();
+            // extension method to do a selectMany.Distinct.Count?
+            const string orgTags = "testmodels.models.values";
+
+            Tuple<string, FilterType, string, int>[] values = {
+                Tuple.Create(orgTags, LenEqual, "2", 1), // two distinct values on One Model
+                Tuple.Create(orgTags, LenGreaterThan, "1", 1), // two distinct values only one model should return
+                Tuple.Create(orgTags, LenGreaterThanOrEqualTo, "2", 1), // greater than or equal to two values, on one model
+                Tuple.Create(orgTags, LenLessThan, "1", 3),
+                Tuple.Create(orgTags, LenLessThanOrEqualTo, "2", 4),
+                Tuple.Create(orgTags, LenNotEqual, "2", 3),
+                Tuple.Create(orgTags, LenNotEqual, "1", 4)
+            };
+
+            Expression<Func<TestModel, bool>> expression;
+            foreach (Tuple<string, FilterType, string, int> tuple in values)
+            {
+                _filterService.By(tuple.Item1, tuple.Item3, tuple.Item2);
+                expression = _filterService.Build();
+                expression.Should().NotBeNull();
+                queryable.Where(expression).Count().ShouldBeEquivalentTo(tuple.Item4);
+            }
+
+        }
 	}
 }

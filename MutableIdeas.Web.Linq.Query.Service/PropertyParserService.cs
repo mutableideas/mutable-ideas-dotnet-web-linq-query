@@ -22,7 +22,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				PropertyInfo propInfo = itemType.GetPropertyInfo(property);
 
 				if (propInfo == null)
-					throw new ArgumentNullException($"'{property}' in '{properties}' is not a valid property on type {itemType.Name}");
+					throw new ArgumentException($"'{property}' in '{properties}' is not a valid property on type {itemType.Name}");
 
 				propertyKeys.Add(property);
 
