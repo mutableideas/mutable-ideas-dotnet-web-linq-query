@@ -308,6 +308,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
         Expression SelectMany(Expression pe, IEnumerator<FilteredProperty> filteredProperties)
         {
             Expression selectManyExpression = pe;
+            ConstantExpression constantExpression = GetConstantExpression("0", typeof(int));
 
             while (filteredProperties.MoveNext())
             {
@@ -315,16 +316,21 @@ namespace MutableIdeas.Web.Linq.Query.Service
                 Type itemType = selectManyExpression.Type.GenericParameter();
 
                 // parameter
-                ParameterExpression parameter = GetParameter(itemType);
+                ParameterExpression anyParameter = GetParameter(itemType);
 
-                // parameter.PropertyName
-                MemberExpression propertyExpression = Expression.Property(parameter, filteredProperty.PropertyName);
-
-                // parameter => parameter.Propertyname != null
-                LambdaExpression notNullExpression = Expression.Lambda(GetNotNullExpression(propertyExpression), parameter);
+                // anyParameter.PropertyName
+                MemberExpression propertyExpression = Expression.Property(anyParameter, filteredProperty.PropertyName);
+                
+                // parameter => parameter.enumerableProperty.Any()
+                Expression anyExpression = Expression.Call(
+                    typeof(Enumerable),
+                    "Any",
+                    new[] { propertyExpression.Type.GenericParameter() },
+                    propertyExpression
+                );
 
                 // Where(parameter => parameter.PropertyName != null)
-                selectManyExpression = WhereExpression(selectManyExpression, notNullExpression);
+                selectManyExpression = WhereExpression(selectManyExpression, Expression.Lambda(anyExpression, anyParameter));
 
                 // Where(parameter => parameter.PropertyName != null).SelectMany(parameter => parameter.PropertyName)
                 selectManyExpression = Expression.Call(
@@ -332,7 +338,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
                     "SelectMany",
                     new[] { itemType, propertyExpression.Type.GenericParameter() },
                     selectManyExpression,
-                    Expression.Lambda(propertyExpression, parameter)
+                    Expression.Lambda(propertyExpression, anyParameter)
                 );
             }
 
