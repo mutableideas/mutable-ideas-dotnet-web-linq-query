@@ -7,14 +7,14 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <Version>2.3.0</Version>
-    <AssemblyVersion>2.3.0.0</AssemblyVersion>
-    <FileVersion>2.3.0.0</FileVersion>
+    <Version>2.3.1</Version>
+    <AssemblyVersion>2.3.1.0</AssemblyVersion>
+    <FileVersion>2.3.1.0</FileVersion>
     <Copyright>MIT</Copyright>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <Authors>Paul Mead</Authors>
     <Company>Webit Flow LLC</Company>
-    <PackageReleaseNotes>Added the ability to nest enumerable properties and count on those distinct values</PackageReleaseNotes>
+    <PackageReleaseNotes>Nested enumerables will need the collections initialized.  Entity Framework wasn't allowing for a check of p =&gt; p.EnumerableProperty == null.  So now the check is p.EnumerableProperty.Any() on nested enumerables.</PackageReleaseNotes>
     <Description></Description>
   </PropertyGroup>
 
