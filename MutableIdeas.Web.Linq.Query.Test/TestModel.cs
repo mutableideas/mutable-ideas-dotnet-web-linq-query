@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace MutableIdeas.Web.Linq.Query.Test
 {
@@ -14,6 +13,15 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 	public class TestModel
 	{
+        public TestModel()
+        {
+            TestItems = new string[0] { };
+            TestStrings = new string[0] { };
+            TestModels = new List<SubTestModel>();
+            TestModelList = new List<SubTestModel>();
+            TestModelCol = new List<SubTestModel>();
+        }
+
 		public string Name { get; set; }
 		public string LastName { get; set; }
 		public int Page { get; set; }
@@ -34,6 +42,12 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 	public class SubTestModel
 	{
+        public SubTestModel()
+        {
+            OrgTags = new string[0] { };
+            Models = new List<AnotherModel>();
+        }
+
 		public string Name { get; set; }
 		public int Index { get; set; }
 		public string[] OrgTags { get; set; }
@@ -43,6 +57,11 @@ namespace MutableIdeas.Web.Linq.Query.Test
 
 	public class AnotherModel
 	{
+        public AnotherModel()
+        {
+            Values = new string[0] { };
+        }
+
 		public string Value { get; set; }
         public IEnumerable<string> Values { get; set; }
 	}
