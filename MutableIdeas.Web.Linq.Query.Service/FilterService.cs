@@ -308,7 +308,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
         Expression SelectMany(Expression pe, IEnumerator<FilteredProperty> filteredProperties)
         {
             Expression selectManyExpression = pe;
-            ConstantExpression constantExpression = GetConstantExpression("0", typeof(int));
+            ConstantExpression constantExpression = GetConstantExpression("0", typeof(int)); ;
 
             while (filteredProperties.MoveNext())
             {
@@ -329,7 +329,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
                     propertyExpression
                 );
 
-                // Where(parameter => parameter.PropertyName != null)
+                // Where(parameter => parameter.PropertyName.Any())
                 selectManyExpression = WhereExpression(selectManyExpression, Expression.Lambda(anyExpression, anyParameter));
 
                 // Where(parameter => parameter.PropertyName != null).SelectMany(parameter => parameter.PropertyName)
