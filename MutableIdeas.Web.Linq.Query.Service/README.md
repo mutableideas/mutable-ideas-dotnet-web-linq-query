@@ -66,19 +66,21 @@ Valid **operator** values
 * name eq 'Red%20Wings' or price eq 5 - *Entity.Name == "Red Wings" || Entity.Price == 5*
 
 #### Enumerables
+**Note - Enumerable properties must be initialized in your entities.**
+
 * enumerable in ['value1', 'value2', 'value3'] - * arrayValuesSupplied.Contains(Entity.enumerable.value);
 * enumerable leneq 3 - Entity.Enumerable.Distinct().Count() == 3
-* enumerable lenne 4 - Entity.Enumerable == null || Entity.Enumerable.Distinct().Count() != 4
-* enumerable lengt 2 - Entity.Enumerable != null && Entity.Enumerable.Distinct().Count() > 2
-* enumerable lengte 4 - Entity.Enumerable != null && Entity.Enumerable.Distinct().Count() >= 4
-* enumerable lenlt 3 - Entity.Enumerable == null || Entity.Enumerable.Distinct().Count() < 3
-* enumerable lenlte 3 - Entity.Enumerable == null || Entity.Enumerable.Distinct().Count() <= 3
+* enumerable lenne 4 - Entity.Enumerable.Distinct().Count() != 4
+* enumerable lengt 2 - Entity.Enumerable.Distinct().Count() > 2
+* enumerable lengte 4 - Entity.Enumerable.Distinct().Count() >= 4
+* enumerable lenlt 3 - Entity.Enumerable.Distinct().Count() < 3
+* enumerable lenlte 3 - Entity.Enumerable.Distinct().Count() <= 3
 
-#### Nest Enumerables
-* enumerable.enumerableProperty lengt 3 - Entity.Enumerable != null && Entity.Enumerable.Where(p => p.EnumerableProperty != null).SelectMany(p => p.EnumerableProperty).Distinct().Count() > 3
+#### Nested Enumerables
+* enumerable.enumerableProperty lengt 3 - Entity.Enumerable != null && Entity.Enumerable.Where(p => p.EnumerableProperty.Any()).SelectMany(p => p.EnumerableProperty).Distinct().Count() > 3
 
 #### Assuming name is a string
-* name leneq 3 - Entity.name != null &&Entity. name.Length == 3
+* name leneq 3 - Entity.name != null && Entity. name.Length == 3
 * name lenne 3 -Entity.name == null || Entity.name.Length != 3
 * name lengt 2 - Entity.name != null && Entity.name.Length > 2
 * name lengte 2 - Entity.name != null && Entity.name.Length >= 2

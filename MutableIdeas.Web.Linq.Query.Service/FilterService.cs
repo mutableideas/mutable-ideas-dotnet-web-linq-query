@@ -230,8 +230,6 @@ namespace MutableIdeas.Web.Linq.Query.Service
                 leftExpression = EnumerableDistinct(leftExpression);
 
 				Expression binaryExpression = GetComparingExpression(leftExpression, constant, comparison);
-                Expression isNullExpression = GetNotNullExpression(expression, filterType);
-                binaryExpression = GetOperatorExpression(isNullExpression, binaryExpression, filterOperator);
 
                 return binaryExpression;
 			}
