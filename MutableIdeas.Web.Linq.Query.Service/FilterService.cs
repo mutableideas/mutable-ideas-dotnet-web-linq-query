@@ -358,19 +358,13 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			Expression objPropertyExpression = ParsePropertyExpression(filteredProperties, pe, filterType, value);
 
 			// create the any expression
-			Expression anyExpression = Expression.Call(
+			return Expression.Call(
 				typeof(Enumerable),
 				"Any",
 				new[] { genericParameter },
 				propertyExpression,
 				Expression.Lambda(objPropertyExpression, pe)
 			);
-
-			if (filteredProperty.FilterPropertyInfo == FilterPropertyInfo.ValueType)
-				return anyExpression;
-
-			Expression nullExpression = GetNotNullExpression(propertyExpression);
-			return GetOperatorExpression(nullExpression, anyExpression, FilterOperator.And);
 		}
 
 		ParameterExpression GetParameter(Type itemType)
