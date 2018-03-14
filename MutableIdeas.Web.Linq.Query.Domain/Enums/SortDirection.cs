@@ -3,6 +3,8 @@
     public enum SortDirection
     {
 		Ascending,
-		Descending
+		Descending,
+        NaturalAsc,
+        NatrualDesc
     }
 }

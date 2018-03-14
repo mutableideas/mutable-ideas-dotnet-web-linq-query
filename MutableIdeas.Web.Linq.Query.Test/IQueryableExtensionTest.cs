@@ -44,5 +44,21 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			act.ShouldThrow<InvalidOperationException>()
 				.WithMessage("Cannot sort enumerable properties.");
 		}
+
+        [TestMethod]
+        public void CheckNaturalSort()
+        {
+            IQueryable<TestModel> testModels = new TestModel[] {
+                new TestModel { LastName = "C5", Name = "George", Page = 3, SubTest = new SubTestModel { Name = "Paul" }, TestItems = new string[] { } },
+                new TestModel { LastName = "C1", Name = "Steve", Page = 2, SubTest = new SubTestModel { Name = "Andrew" }, TestItems = new string[] { } },
+                new TestModel { LastName = "C10", Name = "Sergei", Page = 1, SubTest = new SubTestModel { Name = "Zetterberg" }, TestItems = new string[] { } }
+            }.AsQueryable();
+
+            var orderedModels = testModels.OrderBy("lastname", SortDirection.NaturalAsc);
+            orderedModels.First().LastName.ShouldBeEquivalentTo("C1");
+
+            orderedModels = testModels.OrderBy("lastname", SortDirection.NatrualDesc);
+            orderedModels.First().LastName.ShouldAllBeEquivalentTo("C10");
+        }
     }
 }
