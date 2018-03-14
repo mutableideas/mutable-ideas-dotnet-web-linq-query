@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+
 using MutableIdeas.Web.Linq.Query.Domain.Enums;
 using NaturalSort.Extension;
 
@@ -10,12 +11,19 @@ namespace MutableIdeas.Web.Linq.Query.Service.Extensions
 {
 	public static class IQueryableExtension
 	{
+        static IComparer<string> _comparer = StringComparer.OrdinalIgnoreCase.WithNaturalSort();
+
+        static MethodInfo NaturalSortCompare()
+        {
+            return typeof(IComparer<string>).GetMethod("Compare");
+        }
+
 		public static IQueryable<T> OrderBy<T>(this IQueryable<T> source, string orderByProperty, SortDirection direction)                          
 		{
 			string command = direction == SortDirection.Descending || direction == SortDirection.NatrualDesc ? "OrderByDescending" : "OrderBy";
 
 			Type type = typeof(T);
-			
+
 			ParameterExpression parameter = Expression.Parameter(type, "p");
 			Expression propertyAccess = ExpressionExtension.GetPropertyExpression(parameter, orderByProperty);
 			Expression orderByExpression = Expression.Lambda(propertyAccess, parameter);
@@ -34,13 +42,8 @@ namespace MutableIdeas.Web.Linq.Query.Service.Extensions
 
             if (propertyAccess.Type == typeof(string) && (direction == SortDirection.NatrualDesc || direction == SortDirection.NaturalAsc))
             {
-                MethodInfo naturalSort = typeof(StringComparerNaturalSortExtension).GetMethod("WithNaturalSort");
-                Type[] naturalSortParamTypes = naturalSort.GetParameters().Select(p => p.GetType()).ToArray();
-
-                ConstantExpression naturalSortExpression = Expression.Constant(typeof(StringComparerNaturalSortExtension), "WithNaturalSort", naturalSortParamTypes, null);
-                
-                parameterTypes.Add(typeof(IComparer<string>));
-                expressionParams.Add(naturalSortExpression);
+                Expression naturalSort = Expression.Constant(StringComparer.OrdinalIgnoreCase.WithNaturalSort());
+                expressionParams.Add(naturalSort);
             }
 
             MethodCallExpression resultExpression = Expression.Call(
@@ -49,7 +52,7 @@ namespace MutableIdeas.Web.Linq.Query.Service.Extensions
                 parameterTypes.ToArray(),
 				expressionParams.ToArray());
 
-			return source.Provider.CreateQuery<T>(resultExpression);
+            return source.Provider.CreateQuery<T>(resultExpression);
 		}
 	}
 }

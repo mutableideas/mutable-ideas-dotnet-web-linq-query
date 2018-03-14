@@ -115,6 +115,22 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			models[0].Page.ShouldBeEquivalentTo(1);
 		}
 
+        [TestMethod]
+        public void TestNaturalSorting()
+        {
+            IQueryable<TestModel> testModels = new TestModel[] {
+                new TestModel { LastName = "C5", Name = "George", Page = 3, SubTest = new SubTestModel { Name = "Paul" }, TestItems = new string[] { } },
+                new TestModel { LastName = "C1", Name = "Steve", Page = 2, SubTest = new SubTestModel { Name = "Andrew" }, TestItems = new string[] { } },
+                new TestModel { LastName = "C10", Name = "Sergei", Page = 1, SubTest = new SubTestModel { Name = "Zetterberg" }, TestItems = new string[] { } }
+            }.AsQueryable();
+
+            var models = _expressionService.Sort("lastname natdesc", testModels);
+            models.First().LastName.ShouldAllBeEquivalentTo("C10");
+
+            models = _expressionService.Sort("lastname natasc", testModels);
+            models.First().LastName.ShouldBeEquivalentTo("C1");
+        }
+
 		[TestMethod]
 		public void NumericValues()
 		{
