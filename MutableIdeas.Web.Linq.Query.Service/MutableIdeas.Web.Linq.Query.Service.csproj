@@ -7,14 +7,14 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <Version>2.3.2</Version>
-    <AssemblyVersion>2.3.2.0</AssemblyVersion>
-    <FileVersion>2.3.2.0</FileVersion>
+    <Version>2.4.0</Version>
+    <AssemblyVersion>2.4.0.0</AssemblyVersion>
+    <FileVersion>2.4.0.0</FileVersion>
     <Copyright>MIT</Copyright>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <Authors>Paul Mead</Authors>
     <Company>Webit Flow LLC</Company>
-    <PackageReleaseNotes>Nested enumerables will need the collections initialized.  Entity Framework wasn't allowing for a check of p =&gt; p.EnumerableProperty == null.  So now the check is p.EnumerableProperty.Any() on nested enumerables.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added natural sorting from NaturalSorting.Extension for sorting with the querystring using propertyName natasc or propertyName natdesc</PackageReleaseNotes>
     <Description></Description>
   </PropertyGroup>
 

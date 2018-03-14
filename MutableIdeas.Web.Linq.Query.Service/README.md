@@ -101,6 +101,8 @@ Valid values for **sortOrder**
 
 * **asc** - Ascending order
 * **desc** - Descending order
+* **natasc** - Natural sorting for string values in ascending order, ex: => ["C1", "C2", "C10"]
+* **natdesc** - Natural sorting for string values in descending order, ex => ["C10", "C2", "C1"]
 
 ### Examples for sorting
 * name - default ascending order
