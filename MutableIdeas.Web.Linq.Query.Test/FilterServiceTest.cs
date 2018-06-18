@@ -406,5 +406,19 @@ namespace MutableIdeas.Web.Linq.Query.Test
             }
 
         }
+
+		[TestMethod]
+		public void SquareBracketStringTest()
+		{
+			IQueryable<TestModel> testModels = new TestModel[] {
+				new TestModel { LastName = "C[a]stanza", Name = "George", Page = 0, Points = 3.2M, SubTest = new SubTestModel { Name = "Andrew" }, TestStatus = Test.TestEnum.Maybe },
+				new TestModel { LastName = "Yzerman", Name = "Steve", Page = 1, Points = 0.5M, SubTest = new SubTestModel { Name = "Paul" }, TestStatus = Test.TestEnum.Yes },
+				new TestModel { LastName = "Federov", Name = "Sergei", Page = 2, Points = 3000.888M, SubTest = new SubTestModel { Name = "Steve" }, TestStatus = Test.TestEnum.No }
+			}.AsQueryable();
+
+			_filterService.By("lastname", "[a]", FilterType.ContainsIgnoreCase);
+			Expression<Func<TestModel, bool>> expression = _filterService.Build();
+			testModels.Where(expression).Count().ShouldBeEquivalentTo(1);
+		}
 	}
 }

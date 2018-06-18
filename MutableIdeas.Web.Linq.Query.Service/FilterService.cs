@@ -208,7 +208,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			}
 
 			Expression comparingLeftExpression = propertyExpression == null ? pe as Expression : propertyExpression;
-			ConstantExpression constant = GetConstantExpression(value, !isLenComparison ? lastType : typeof(int));
+			ConstantExpression constant = GetConstantExpression(value, !isLenComparison ? lastType : typeof(int), comparison);
 			Expression comparingExpression = GetComparingExpression(comparingLeftExpression, constant, comparison);
 
 			if (leftExpression != null)
@@ -225,7 +225,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
                 FilterType filterType = includeNull ? FilterType.Equal : FilterType.NotEqual;
                 FilterOperator filterOperator = includeNull ? FilterOperator.Or : FilterOperator.And;
 
-				ConstantExpression constant = GetConstantExpression(value, typeof(int));
+				ConstantExpression constant = GetConstantExpression(value, typeof(int), filterType);
                 Expression leftExpression = SelectMany(expression, filterProperties);
                 leftExpression = EnumerableDistinct(leftExpression);
 
@@ -237,11 +237,11 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return AnyExpression(expression, filterProperties, comparison, value);
 		}
 
-		ConstantExpression GetConstantExpression(string value, Type valueType)
+		ConstantExpression GetConstantExpression(string value, Type valueType, FilterType filterType)
 		{
 			object constantValue = value;
 
-			if (value != null && value.StartsWith("[") && value.EndsWith("]"))
+			if (value != null && filterType == FilterType.In && value.StartsWith("[") && value.EndsWith("]"))
 			{
 				MethodInfo genericMethod = getArrayConstant.MakeGenericMethod(valueType);
 				return genericMethod.Invoke(null, new[] { value }) as ConstantExpression;
@@ -306,7 +306,6 @@ namespace MutableIdeas.Web.Linq.Query.Service
         Expression SelectMany(Expression pe, IEnumerator<FilteredProperty> filteredProperties)
         {
             Expression selectManyExpression = pe;
-            ConstantExpression constantExpression = GetConstantExpression("0", typeof(int)); ;
 
             while (filteredProperties.MoveNext())
             {
@@ -380,7 +379,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			if (filterType != FilterType.NotEqual && filterType != FilterType.Equal)
 				throw new ArgumentException("Filter type can only Equal or NotEqual");
 
-			ConstantExpression nullConstant = GetConstantExpression(null, typeof(object));
+			ConstantExpression nullConstant = GetConstantExpression(null, typeof(object), filterType);
 			return GetComparingExpression(property, nullConstant, filterType);
 		}
 
@@ -397,11 +396,11 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			}
 
 			MemberExpression hasValueExpression = Expression.Property(memberExpression, "HasValue");
-			ConstantExpression boolValueExpression = GetConstantExpression(hasValue, typeof(bool));
+			ConstantExpression boolValueExpression = GetConstantExpression(hasValue, typeof(bool), comparison);
 			Expression leftComparingExpression = GetComparingExpression(hasValueExpression, boolValueExpression, FilterType.Equal);
 
 			MemberExpression valuePropertyExpression = Expression.Property(memberExpression, "Value");
-			ConstantExpression valueExpression = GetConstantExpression(value, genericValue);
+			ConstantExpression valueExpression = GetConstantExpression(value, genericValue, comparison);
 			Expression rightComparingExpression = GetComparingExpression(valuePropertyExpression, valueExpression, comparison);
 
 			return GetOperatorExpression(leftComparingExpression, rightComparingExpression, filterOperator);
