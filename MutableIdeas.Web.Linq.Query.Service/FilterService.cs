@@ -25,7 +25,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		readonly MethodInfo getArrayConstant = typeof(ExpressionExtension).GetRuntimeMethods().First(p => p.Name == "GetArrayConstantValue");
 		readonly MethodInfo getConstantValue = typeof(ExpressionExtension).GetRuntimeMethods().First(p => p.Name == "ConvertValue");
 
-        protected Dictionary<string, PropertyInfo> _propertyInfo;
+		protected Dictionary<string, PropertyInfo> _propertyInfo;
 
 		public FilterService()
 		{
@@ -99,22 +99,22 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return expression;
 		}
 
-        Expression GetComparingExpression(Expression left, Expression right, FilterType filterType)
-        {
-            switch(filterType)
-            {
-                case FilterType.Equal:
-                    return Expression.Equal(left, right);
-                case FilterType.GreaterThan:
-                    return Expression.GreaterThan(left, right);
-                case FilterType.GreaterThanOrEqualTo:
-                    return Expression.GreaterThanOrEqual(left, right);
-                case FilterType.LessThan:
-                    return Expression.LessThan(left, right);
-                case FilterType.LessThanOrEqualTo:
-                    return Expression.LessThanOrEqual(left, right);
-                case FilterType.NotEqual:
-                    return Expression.NotEqual(left, right);
+		Expression GetComparingExpression(Expression left, Expression right, FilterType filterType)
+		{
+			switch (filterType)
+			{
+				case FilterType.Equal:
+					return Expression.Equal(left, right);
+				case FilterType.GreaterThan:
+					return Expression.GreaterThan(left, right);
+				case FilterType.GreaterThanOrEqualTo:
+					return Expression.GreaterThanOrEqual(left, right);
+				case FilterType.LessThan:
+					return Expression.LessThan(left, right);
+				case FilterType.LessThanOrEqualTo:
+					return Expression.LessThanOrEqual(left, right);
+				case FilterType.NotEqual:
+					return Expression.NotEqual(left, right);
 				case FilterType.Contains:
 					return ExpressionExtension.ContainsExpression(left, right);
 				case FilterType.ContainsIgnoreCase:
@@ -132,8 +132,8 @@ namespace MutableIdeas.Web.Linq.Query.Service
 					return GetLengthComparingExpression(left, right as ConstantExpression, filterType);
 			}
 
-            throw new ArgumentException($"The filter type {filterType} does not exist.");
-        }
+			throw new ArgumentException($"The filter type {filterType} does not exist.");
+		}
 
 		Expression GetLengthComparingExpression(Expression left, ConstantExpression right, FilterType filterType)
 		{
@@ -165,10 +165,10 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			return GetComparingExpression(lengthExpression, right, comparingFilterType);
 		}
 
-        Expression GetOperatorExpression(Expression left, Expression right, FilterOperator filterOperator)
-        {
-            return filterOperator == FilterOperator.And ? Expression.AndAlso(left, right) : Expression.OrElse(left, right);
-        }
+		Expression GetOperatorExpression(Expression left, Expression right, FilterOperator filterOperator)
+		{
+			return filterOperator == FilterOperator.And ? Expression.AndAlso(left, right) : Expression.OrElse(left, right);
+		}
 
 		Expression ParsePropertyExpression(IEnumerator<FilteredProperty> filterProperties, ParameterExpression pe, FilterType comparison, string value)
 		{
@@ -184,7 +184,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 				return left == null ? right : GetOperatorExpression(left, right, filterOperator);
 			};
 
-			while(filterProperties.MoveNext())
+			while (filterProperties.MoveNext())
 			{
 				FilteredProperty filteredProperty = filterProperties.Current;
 				string propertyName = filteredProperty.PropertyName;
@@ -221,17 +221,17 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		{
 			if (IsLengthComparison(comparison))
 			{
-                bool includeNull = LenIncludeNullComparisons(comparison);
-                FilterType filterType = includeNull ? FilterType.Equal : FilterType.NotEqual;
-                FilterOperator filterOperator = includeNull ? FilterOperator.Or : FilterOperator.And;
+				bool includeNull = LenIncludeNullComparisons(comparison);
+				FilterType filterType = includeNull ? FilterType.Equal : FilterType.NotEqual;
+				FilterOperator filterOperator = includeNull ? FilterOperator.Or : FilterOperator.And;
 
 				ConstantExpression constant = GetConstantExpression(value, typeof(int), filterType);
-                Expression leftExpression = SelectMany(expression, filterProperties);
-                leftExpression = EnumerableDistinct(leftExpression);
+				Expression leftExpression = SelectMany(expression, filterProperties);
+				leftExpression = EnumerableDistinct(leftExpression);
 
 				Expression binaryExpression = GetComparingExpression(leftExpression, constant, comparison);
 
-                return binaryExpression;
+				return binaryExpression;
 			}
 
 			return AnyExpression(expression, filterProperties, comparison, value);
@@ -277,79 +277,79 @@ namespace MutableIdeas.Web.Linq.Query.Service
 			);
 		}
 
-        Expression EnumerableDistinct(Expression expression)
-        {
-            if (!expression.Type.IsEnumerable())
-                throw new ArgumentException("Member Expression must be of an enumerable type.");
+		Expression EnumerableDistinct(Expression expression)
+		{
+			if (!expression.Type.IsEnumerable())
+				throw new ArgumentException("Member Expression must be of an enumerable type.");
 
-            Type genericParameterType = expression.Type.FirstGenericParameter();
+			Type genericParameterType = expression.Type.FirstGenericParameter();
 
-            return Expression.Call(
-                typeof(Enumerable),
-                "Distinct",
-                new[] { genericParameterType },
-                expression
-            );
-        }
+			return Expression.Call(
+				typeof(Enumerable),
+				"Distinct",
+				new[] { genericParameterType },
+				expression
+			);
+		}
 
-        Expression WhereExpression(Expression param, LambdaExpression lambda)
-        {
-            return Expression.Call(
-                typeof(Enumerable),
-                "Where",
-                new[] { param.Type.GenericParameter() },
-                param,
-                lambda
-            );
-        }
+		Expression WhereExpression(Expression param, LambdaExpression lambda)
+		{
+			return Expression.Call(
+				typeof(Enumerable),
+				"Where",
+				new[] { param.Type.GenericParameter() },
+				param,
+				lambda
+			);
+		}
 
-        Expression SelectMany(Expression pe, IEnumerator<FilteredProperty> filteredProperties)
-        {
-            Expression selectManyExpression = pe;
+		Expression SelectMany(Expression pe, IEnumerator<FilteredProperty> filteredProperties)
+		{
+			Expression selectManyExpression = pe;
 
-            while (filteredProperties.MoveNext())
-            {
-                FilteredProperty filteredProperty = filteredProperties.Current;
-                Type itemType = selectManyExpression.Type.GenericParameter();
+			while (filteredProperties.MoveNext())
+			{
+				FilteredProperty filteredProperty = filteredProperties.Current;
+				Type itemType = selectManyExpression.Type.GenericParameter();
 
-                // parameter
-                ParameterExpression anyParameter = GetParameter(itemType);
+				// parameter
+				ParameterExpression anyParameter = GetParameter(itemType);
 
-                // anyParameter.PropertyName
-                MemberExpression propertyExpression = Expression.Property(anyParameter, filteredProperty.PropertyName);
-                
-                // parameter => parameter.enumerableProperty.Any()
-                Expression anyExpression = Expression.Call(
-                    typeof(Enumerable),
-                    "Any",
-                    new[] { propertyExpression.Type.GenericParameter() },
-                    propertyExpression
-                );
+				// anyParameter.PropertyName
+				MemberExpression propertyExpression = Expression.Property(anyParameter, filteredProperty.PropertyName);
 
-                // Where(parameter => parameter.PropertyName.Any())
-                selectManyExpression = WhereExpression(selectManyExpression, Expression.Lambda(anyExpression, anyParameter));
+				// parameter => parameter.enumerableProperty.Any()
+				Expression anyExpression = Expression.Call(
+					typeof(Enumerable),
+					"Any",
+					new[] { propertyExpression.Type.GenericParameter() },
+					propertyExpression
+				);
 
-                // Where(parameter => parameter.PropertyName != null).SelectMany(parameter => parameter.PropertyName)
-                selectManyExpression = Expression.Call(
-                    typeof(Enumerable),
-                    "SelectMany",
-                    new[] { itemType, propertyExpression.Type.GenericParameter() },
-                    selectManyExpression,
-                    Expression.Lambda(propertyExpression, anyParameter)
-                );
-            }
+				// Where(parameter => parameter.PropertyName.Any())
+				selectManyExpression = WhereExpression(selectManyExpression, Expression.Lambda(anyExpression, anyParameter));
 
-            return selectManyExpression;
-        }
+				// Where(parameter => parameter.PropertyName != null).SelectMany(parameter => parameter.PropertyName)
+				selectManyExpression = Expression.Call(
+					typeof(Enumerable),
+					"SelectMany",
+					new[] { itemType, propertyExpression.Type.GenericParameter() },
+					selectManyExpression,
+					Expression.Lambda(propertyExpression, anyParameter)
+				);
+			}
 
-        Expression AnyExpression(Expression propertyExpression, IEnumerator<FilteredProperty> filteredProperties, FilterType filterType, string value)
+			return selectManyExpression;
+		}
+
+		Expression AnyExpression(Expression propertyExpression, IEnumerator<FilteredProperty> filteredProperties, FilterType filterType, string value)
 		{
 			// keep state of the current filtered property, may need a null check
 			FilteredProperty filteredProperty = filteredProperties.Current;
 
 			// generic parameter for the enumerable
 			Type genericParameter = filteredProperties.Current.PropertyType.FirstGenericParameter();
-			
+
 			// the parameter in the any clause (pe => pe.IsHere); it's the "pe" part
 			ParameterExpression pe = GetParameter(genericParameter);
 
@@ -386,19 +386,10 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		Expression GetNullableCheck(MemberExpression memberExpression, FilterType comparison, string value)
 		{
 			Type genericValue = memberExpression.Type.FirstGenericParameter();
-			string hasValue = "true";
-			FilterOperator filterOperator = FilterOperator.And;
+			FilterOperator filterOperator = comparison == FilterType.NotEqual ? FilterOperator.Or : FilterOperator.And;
+			FilterType nullCheckTypeComparison = filterOperator == FilterOperator.Or ? FilterType.Equal : FilterType.NotEqual;
 
-			if (comparison == FilterType.NotEqual)
-			{
-				hasValue = "false";
-				filterOperator = FilterOperator.Or;
-			}
-
-			MemberExpression hasValueExpression = Expression.Property(memberExpression, "HasValue");
-			ConstantExpression boolValueExpression = GetConstantExpression(hasValue, typeof(bool), comparison);
-			Expression leftComparingExpression = GetComparingExpression(hasValueExpression, boolValueExpression, FilterType.Equal);
-
+			Expression leftComparingExpression = GetNotNullExpression(memberExpression, nullCheckTypeComparison);
 			MemberExpression valuePropertyExpression = Expression.Property(memberExpression, "Value");
 			ConstantExpression valueExpression = GetConstantExpression(value, genericValue, comparison);
 			Expression rightComparingExpression = GetComparingExpression(valuePropertyExpression, valueExpression, comparison);
@@ -433,15 +424,15 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		bool LenIncludeNullComparisons(FilterType filterType)
 		{
-            switch (filterType)
-            {
-                case FilterType.LenLessThan:
-                case FilterType.LenLessThanOrEqualTo:
-                case FilterType.LenNotEqual:
-                    return true;
-                default:
-                    return false;
-            }	
+			switch (filterType)
+			{
+				case FilterType.LenLessThan:
+				case FilterType.LenLessThanOrEqualTo:
+				case FilterType.LenNotEqual:
+					return true;
+				default:
+					return false;
+			}
 		}
 	}
 }
