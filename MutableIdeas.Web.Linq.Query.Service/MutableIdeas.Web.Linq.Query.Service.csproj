@@ -7,14 +7,14 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <Version>2.4.1</Version>
+    <Version>2.4.2</Version>
     <AssemblyVersion>2.4.1.0</AssemblyVersion>
     <FileVersion>2.4.1.0</FileVersion>
     <Copyright>MIT</Copyright>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <Authors>Paul Mead</Authors>
-    <Company>Webit Flow LLC</Company>
-    <PackageReleaseNotes>Fixed an issue with square brackets within a string and using the filter type of IN</PackageReleaseNotes>
+    <Company>Mutable Ideas LLC</Company>
+    <PackageReleaseNotes>Fixed an expression issue where HasValue is not respected by some expression parsers on nullable types</PackageReleaseNotes>
     <Description></Description>
   </PropertyGroup>
 
