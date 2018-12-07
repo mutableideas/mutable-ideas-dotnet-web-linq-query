@@ -20,7 +20,7 @@ namespace MutableIdeas.Web.Linq.Query.Service
 
 		public QueryStringExpressionService(IFilterService<T> filterService)
         {
-            _pattern = new Regex(@"(?<entity>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte|ct|ctic|in|leneq|lengt|lengte|lenlt|lenlte|lenne){1}\s+(?<value>\[(('[\w+|\s+%-]+\'|\d*\.?\d*)\s*,?)*\]|true|false|\'[\w+|\s+%-]+\'|\d*\.?\d*)(?<operator>\s\w+\s)?", RegexOptions.Compiled);
+            _pattern = new Regex(@"(?<entity>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}\s+(?<comparison>eq|lt|lte|ne|gt|gte|ct|ctic|in|leneq|lengt|lengte|lenlt|lenlte|lenne){1}\s+(?<value>\[(('[\w+|\s+%-]+\'|\d*\.?\d*)\s*,?)*\]|true|false|\'[\w+|\s+%-:]+\'|\d*\.?\d*)(?<operator>\s\w+\s)?", RegexOptions.Compiled);
 			_sortPattern = new Regex(@"^(?<propName>([_A-Za-z]{1}\w*){1}(\.[_A-Za-z]{1}\w*)*){1}(\s+(?<order>desc|asc|natdesc|natasc))?$", RegexOptions.Compiled);
 
 			_propertyNames = typeof(T).GetRuntimeProperties().ToDictionary(p => p.Name, p => p);
