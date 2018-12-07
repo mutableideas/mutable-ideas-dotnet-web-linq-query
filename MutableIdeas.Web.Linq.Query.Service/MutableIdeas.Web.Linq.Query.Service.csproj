@@ -7,14 +7,14 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <Version>2.4.2</Version>
-    <AssemblyVersion>2.4.1.0</AssemblyVersion>
-    <FileVersion>2.4.1.0</FileVersion>
+    <Version>2.4.3</Version>
+    <AssemblyVersion>2.4.3.0</AssemblyVersion>
+    <FileVersion>2.4.3.0</FileVersion>
     <Copyright>MIT</Copyright>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <Authors>Paul Mead</Authors>
     <Company>Mutable Ideas LLC</Company>
-    <PackageReleaseNotes>Fixed an expression issue where HasValue is not respected by some expression parsers on nullable types</PackageReleaseNotes>
+    <PackageReleaseNotes>Colons are allowed as value string character values when filtering data.</PackageReleaseNotes>
     <Description></Description>
   </PropertyGroup>
 
