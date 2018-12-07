@@ -212,5 +212,13 @@ namespace MutableIdeas.Web.Linq.Query.Test
 				_expressionService.GetExpression(qString).Should().NotBeNull();
 			}
 		}
+
+		[TestMethod]
+		public void TestISODate()
+		{
+			string qstringFilter = "applydate gte '2018-12-05T22%3A08%3A13.198Z'";
+			Expression<Func<TestModel, bool>> expression = _expressionService.GetExpression(qstringFilter);
+			expression.Should().NotBeNull();
+		}
 	}
 }
