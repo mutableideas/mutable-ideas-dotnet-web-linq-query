@@ -219,6 +219,10 @@ namespace MutableIdeas.Web.Linq.Query.Test
 			string qstringFilter = "applydate gte '2018-12-05T22%3A08%3A13.198Z'";
 			Expression<Func<TestModel, bool>> expression = _expressionService.GetExpression(qstringFilter);
 			expression.Should().NotBeNull();
+
+			qstringFilter = "applydate gte '2018-01-01T21%3A41%3A03.000Z' and applydate lte '2018-12-01T21%3A41%3A03.000Z'";
+			expression = _expressionService.GetExpression(qstringFilter);
+			expression.Should().NotBeNull();
 		}
 	}
 }
