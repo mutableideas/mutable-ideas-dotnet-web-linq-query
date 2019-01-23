@@ -25,6 +25,10 @@ namespace MutableIdeas.Web.Linq.Query.Service
 		public static V ConvertValue<V>(string value)
 		{
 			Type valueType = typeof(V);
+			MethodInfo methodInfo = valueType.GetMethods().FirstOrDefault(p => p.Name == "Parse");
+
+			if (methodInfo != null)
+				return (V)methodInfo.Invoke(null, new object[] { value });
 
 			return valueType.IsEnum
 				? (V)Enum.Parse(valueType, value.UnescapeUrlValue())
