@@ -7,14 +7,14 @@
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
-    <Version>2.4.4</Version>
-    <AssemblyVersion>2.4.4.0</AssemblyVersion>
-    <FileVersion>2.4.4.0</FileVersion>
+    <Version>2.4.5</Version>
+    <AssemblyVersion>2.4.5.0</AssemblyVersion>
+    <FileVersion>2.4.5.0</FileVersion>
     <Copyright>MIT</Copyright>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <Authors>Paul Mead</Authors>
     <Company>Mutable Ideas LLC</Company>
-    <PackageReleaseNotes>Fixed issued with and/or within the filter parameters</PackageReleaseNotes>
+    <PackageReleaseNotes>Guid Conversion fixed</PackageReleaseNotes>
     <Description></Description>
   </PropertyGroup>
 
